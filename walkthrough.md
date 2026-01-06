@@ -27,3 +27,22 @@ I created a comprehensive SQL schema file `supabase_schema.sql` that you need to
 3.  **Run**:
     - Run `npm run dev` to start the application.
     - Use the Login page to Sign Up a new user (the first user will be a partial profile, you can manually update their role to 'OWNER' in the database if needed for testing everything).
+
+## 4. PDF Reporting Feature
+I have implemented a client-side PDF generation module to meet the requirement of 5 downloadable reports.
+
+### Features
+- **Library**: Uses `jspdf` and `jspdf-autotable`.
+- **UI**: Added a "Reports" dropdown in the Project Details header.
+- **Available Reports**:
+    1.  **Project Status Summary**: Overview of project health and member list.
+    2.  **Task List**: Complete list of tasks grouped by status.
+    3.  **Member Workload**: Analysis of active vs completed tasks per member.
+    4.  **Overdue Tasks**: List of critical overdue items.
+    5.  **Activity Log**: History of recent project activities.
+
+### How to Test
+1.  Navigate to any **Project Detail** page.
+2.  Locate the **Reports** button (next to the Search bar).
+3.  Click the button and select any of the 5 report types.
+4.  The PDF should download immediately with a filename like `Project_Summary_MyProject.pdf`.

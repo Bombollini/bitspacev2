@@ -16,8 +16,19 @@ import {
   Info,
   Search,
   Filter,
-  UserPlus
+  UserPlus,
+  FileText,
+  ChevronDown,
+  Download,
+  Trash2
 } from 'lucide-react';
+import { 
+    generateProjectSummaryPDF, 
+    generateTaskListPDF, 
+    generateMemberWorkloadPDF, 
+    generateOverdueReportPDF, 
+    generateActivityLogPDF 
+} from '../utils/pdfGenerator';
 
 import { InviteMemberModal } from '../components/InviteMemberModal';
 import { TaskDetailModal } from '../components/TaskDetailModal';
@@ -34,6 +45,7 @@ export const ProjectDetailPage: React.FC = () => {
   // Modals
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false); // Export Dropdown State
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -162,6 +174,44 @@ export const ProjectDetailPage: React.FC = () => {
       }
   };
 
+  const handleDeleteProject = async () => {
+      if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) return;
+      try {
+          await api.projects.remove(projectId!);
+          // Navigate to dashboard after delete
+          // We can use window.location or navigate from router
+          // Since navigate is not imported in component (only useParams), let's fix imports first or use window.location
+          window.location.href = '#/dashboard';
+      } catch (err) {
+          console.error(err);
+          alert('Failed to delete project');
+      }
+  };
+
+  /* Export Handlers */
+  const handleExport = (type: string) => {
+    if (!project) return;
+    setIsExportOpen(false);
+
+    switch (type) {
+        case 'summary':
+            generateProjectSummaryPDF(project, members);
+            break;
+        case 'tasks':
+            generateTaskListPDF(tasks, project, members);
+            break;
+        case 'workload':
+            generateMemberWorkloadPDF(project, members, tasks);
+            break;
+        case 'overdue':
+            generateOverdueReportPDF(project, tasks, members);
+            break;
+        case 'activity':
+            generateActivityLogPDF(project, activities);
+            break;
+    }
+  };
+
   /* Stats Calculation */
   const memberStats = members.map(m => {
       const assignedTasks = tasks.filter(t => t.assigneeId === m.id);
@@ -192,24 +242,56 @@ export const ProjectDetailPage: React.FC = () => {
   return (
     <Layout>
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">{project.name}</h1>
-            <div className="flex items-center gap-4 text-sm text-slate-500">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
                <span className="flex items-center gap-1.5"><LayoutGrid size={16}/> {project.status}</span>
                <span className="flex items-center gap-1.5"><Users size={16}/> {members.length} members</span>
                <span className="flex items-center gap-1.5"><ActivityIcon size={16}/> {completionPercentage}% complete</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+             {/* Export Dropdown */}
              <div className="relative">
+                 <button
+                     onClick={() => setIsExportOpen(!isExportOpen)}
+                     className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all text-sm"
+                 >
+                     <Download size={18} />
+                     Reports
+                     <ChevronDown size={14} />
+                 </button>
+                 {isExportOpen && (
+                     <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl border border-slate-200 shadow-xl z-50 overflow-hidden transform origin-top-right transition-all">
+                         <div className="p-2 space-y-1">
+                             <button onClick={() => handleExport('summary')} className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2">
+                                 <FileText size={16} className="text-blue-500"/> Project Summary
+                             </button>
+                             <button onClick={() => handleExport('tasks')} className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2">
+                                 <FileText size={16} className="text-emerald-500"/> Task List
+                             </button>
+                             <button onClick={() => handleExport('workload')} className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2">
+                                 <FileText size={16} className="text-purple-500"/> Member Workload
+                             </button>
+                             <button onClick={() => handleExport('overdue')} className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2">
+                                 <FileText size={16} className="text-rose-500"/> Overdue Tasks
+                             </button>
+                             <button onClick={() => handleExport('activity')} className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2">
+                                 <FileText size={16} className="text-amber-500"/> Activity Log
+                             </button>
+                         </div>
+                     </div>
+                 )}
+             </div>
+             <div className="relative flex-1 sm:flex-none">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input 
                   type="text" 
                   placeholder="Filter tasks..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64 shadow-sm"
+                  className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64 shadow-sm"
                 />
              </div>
              <button 
@@ -217,7 +299,8 @@ export const ProjectDetailPage: React.FC = () => {
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:shadow-xl transition-all active:scale-95"
              >
                 <Plus size={18} />
-                New Task
+                <span className="hidden sm:inline">New Task</span>
+                <span className="sm:hidden">New</span>
              </button>
           </div>
         </div>
@@ -305,6 +388,23 @@ export const ProjectDetailPage: React.FC = () => {
                        </p>
                     </div>
                  </div>
+
+                 {/* Delete Project Zone */}
+                 {currentUser?.role === UserRole.OWNER && (
+                    <div className="bg-rose-50 p-6 rounded-2xl border border-rose-100 flex items-center justify-between">
+                         <div>
+                             <h4 className="text-rose-700 font-bold mb-1">Danger Zone</h4>
+                             <p className="text-sm text-rose-600/80">permanently delete this project and all its data.</p>
+                         </div>
+                         <button 
+                             onClick={handleDeleteProject}
+                             className="flex items-center gap-2 px-4 py-2 bg-white text-rose-600 font-bold rounded-xl border border-rose-200 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-sm"
+                         >
+                             <Trash2 size={18} />
+                             Delete Project
+                         </button>
+                    </div>
+                 )}
               </div>
               
               <div className="space-y-6">

@@ -43,12 +43,12 @@ export const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-10">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl mx-auto mb-4 shadow-lg">S</div>
+            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl mx-auto mb-4 shadow-lg">B</div>
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
                 {isLogin ? 'Welcome Back' : 'Create Account'}
             </h1>
             <p className="text-slate-500 mt-2">
-                {isLogin ? 'Sign in to your SoftHouse account' : 'Join SoftHouse to manage your projects'}
+                {isLogin ? 'Sign in to your Bitspace account' : 'Join Bitspace to manage your projects'}
             </p>
         </div>
 
@@ -137,7 +137,7 @@ export const LoginPage: React.FC = () => {
         </div>
         
         <p className="text-center text-xs text-slate-400 mt-8">
-          &copy; 2024 SoftHouse Inc. All rights reserved.
+          &copy; 2024 Bitspace Inc. All rights reserved.
         </p>
       </div>
     </div>
