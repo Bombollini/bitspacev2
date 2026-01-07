@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/apiClient';
-import { Project, UserRole } from '../types';
+import { Project, UserRole, CreateProjectDto } from '../types';
 import { useAuth } from '../services/authStore';
 import { Layout } from '../components/Layout';
-import { Briefcase, CheckCircle2, AlertCircle, Clock, ChevronRight, Plus } from 'lucide-react';
+import { Briefcase, CheckCircle2, AlertCircle, Clock, ChevronRight, Plus, FileText } from 'lucide-react';
 import { NewProjectModal } from '../components/NewProjectModal';
+import { generateAllProjectsReportPDF } from '../utils/pdfGenerator';
 
 export const DashboardPage: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -51,6 +52,29 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+  const handleGenerateReport = async () => {
+    if (!currentUser || currentUser.role !== UserRole.OWNER) return;
+    setIsGeneratingReport(true);
+    try {
+        const ownedProjects = projects.filter(p => p.ownerId === currentUser.id);
+        
+        // Fetch members for each project
+        const data = await Promise.all(ownedProjects.map(async (project) => {
+            const members = await api.projects.members(project.id);
+            return { project, members };
+        }));
+
+        generateAllProjectsReportPDF(data);
+    } catch (err) {
+        console.error('Failed to generate report', err);
+        alert('Failed to generate report');
+    } finally {
+        setIsGeneratingReport(false);
+    }
+  };
+
   const stats = [
     { name: 'Active Projects', value: projects.length, icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-50' },
     { name: 'Total Tasks', value: projects.reduce((acc, p) => acc + (p.stats?.totalTasks || 0), 0), icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -84,12 +108,22 @@ export const DashboardPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-slate-900">Recent Projects</h3>
           {currentUser?.role === UserRole.OWNER && (
-            <button 
-                onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-            >
-                <Plus size={18} /> New Project
-            </button>
+            <div className="flex items-center gap-3">
+                <button
+                    onClick={handleGenerateReport}
+                    disabled={isGeneratingReport}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium disabled:opacity-50"
+                >
+                    <FileText size={18} />
+                    {isGeneratingReport ? 'Generating...' : 'Generate Report'}
+                </button>
+                <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                    <Plus size={18} /> New Project
+                </button>
+            </div>
           )}
         </div>
 

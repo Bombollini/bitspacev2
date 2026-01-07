@@ -33,8 +33,6 @@ export const savePDF = (doc: jsPDF, filename: string) => {
 
 // --- Report Specific Generators ---
 
-// --- Report Specific Generators ---
-
 export const generateProjectSummaryPDF = (project: Project, members: User[]) => {
   const doc = generatePDF('Project Status Summary');
   
@@ -127,40 +125,49 @@ export const generateMemberWorkloadPDF = (project: Project, members: User[], tas
     savePDF(doc, `Workload_${project.name}`);
 };
 
-export const generateOverdueReportPDF = (project: Project, tasks: Task[], users: User[]) => {
-    const doc = generatePDF('Overdue Tasks Report');
-    doc.setTextColor(220, 53, 69);
-    doc.text(`URGENT: Overdue Items for ${project.name}`, 14, 55);
-    doc.setTextColor(0, 0, 0);
+export const generateAllProjectsReportPDF = (data: { project: Project, members: User[] }[]) => {
+    const doc = generatePDF('All Projects Report');
+    doc.text(`Owner Report - Projects Overview`, 14, 55);
 
-    const now = new Date();
-    const overdueTasks = tasks.filter(t => {
-        if (!t.dueDate || t.status === 'DONE') return false;
-        return new Date(t.dueDate) < now;
+    let currentY = 65;
+
+    data.forEach((item, index) => {
+        // Check if we need a new page
+        if (currentY > 250) {
+            doc.addPage();
+            currentY = 20;
+        }
+
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${item.project.name}`, 14, currentY);
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text(`Status: ${item.project.status}`, 14, currentY + 5);
+        doc.text(`Description: ${item.project.description || 'No description'}`, 14, currentY + 10);
+        
+        // Members
+        const memberNames = item.members.map(m => `${m.name} (${m.role})`).join(', ');
+        doc.text(`Members:`, 14, currentY + 16);
+        
+        // Wrap member text
+        const splitMembers = doc.splitTextToSize(memberNames, 180);
+        doc.setTextColor(80, 80, 80);
+        doc.text(splitMembers, 14, currentY + 21);
+        
+        const memberHeight = splitMembers.length * 4;
+        
+        currentY = currentY + 25 + memberHeight;
+        
+        // Separator
+        doc.setDrawColor(200, 200, 200);
+        doc.line(14, currentY, 196, currentY);
+        currentY += 10;
     });
 
-    if (overdueTasks.length === 0) {
-        doc.text('No overdue tasks found. Good job!', 14, 70);
-    } else {
-        const rows = overdueTasks.map(t => {
-            const assignee = users.find(u => u.id === t.assigneeId)?.name || 'Unassigned';
-            return [
-                t.title,
-                assignee,
-                t.status,
-                new Date(t.dueDate!).toLocaleDateString()
-            ];
-        });
-
-        autoTable(doc, {
-            startY: 65,
-            head: [['Title', 'Assignee', 'Status', 'Due Date']],
-            body: rows,
-            headStyles: { fillColor: [200, 35, 51] }
-        });
-    }
-
-    savePDF(doc, `Overdue_${project.name}`);
+    savePDF(doc, `All_Projects_Report_${new Date().toISOString().split('T')[0]}`);
 };
 
 export const generateActivityLogPDF = (project: Project, activities: Activity[]) => {
@@ -188,4 +195,3 @@ export const generateActivityLogPDF = (project: Project, activities: Activity[])
 
     savePDF(doc, `Activity_Log_${project.name}`);
 };
-

@@ -26,7 +26,6 @@ import {
     generateProjectSummaryPDF, 
     generateTaskListPDF, 
     generateMemberWorkloadPDF, 
-    generateOverdueReportPDF, 
     generateActivityLogPDF 
 } from '../utils/pdfGenerator';
 
@@ -203,9 +202,6 @@ export const ProjectDetailPage: React.FC = () => {
         case 'workload':
             generateMemberWorkloadPDF(project, members, tasks);
             break;
-        case 'overdue':
-            generateOverdueReportPDF(project, tasks, members);
-            break;
         case 'activity':
             generateActivityLogPDF(project, activities);
             break;
@@ -274,9 +270,7 @@ export const ProjectDetailPage: React.FC = () => {
                              <button onClick={() => handleExport('workload')} className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2">
                                  <FileText size={16} className="text-purple-500"/> Member Workload
                              </button>
-                             <button onClick={() => handleExport('overdue')} className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2">
-                                 <FileText size={16} className="text-rose-500"/> Overdue Tasks
-                             </button>
+
                              <button onClick={() => handleExport('activity')} className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2">
                                  <FileText size={16} className="text-amber-500"/> Activity Log
                              </button>
