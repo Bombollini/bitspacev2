@@ -104,22 +104,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (credentials: any) => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
-      // Add timeout to login as well
-      const timeoutPromise = new Promise<{ error: any }>((_, reject) => 
-        setTimeout(() => reject(new Error('Login timed out - please check connection')), 10000)
-      );
+      console.log('authStore: Attempting login for', credentials.email);
+      
+      // Removed manual connection check as it was causing confusion/delays
+      // and checking 'projects' table is not reliable for anonymous users.
 
-      const { error } = await Promise.race([
-        supabase.auth.signInWithPassword({
+      const start = performance.now();
+      
+      // 15s timeout for better UX
+      const loginPromise = supabase.auth.signInWithPassword({
           email: credentials.email,
           password: credentials.password,
-        }),
-        timeoutPromise
-      ]);
+      });
+      
+      const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Login request timed out after 15s. Check network or Supabase status.')), 15000)
+      );
 
-      if (error) throw error;
+      const result = await Promise.race([loginPromise, timeoutPromise]) as any;
+      const { data, error } = result;
+
+      const end = performance.now();
+      console.log(`authStore: signInWithPassword took ${(end - start).toFixed(2)}ms`);
+
+      if (error) {
+          console.error('authStore: Login returned error:', error);
+          throw error;
+      }
+      
+      console.log('authStore: Login successful', data);
       // onAuthStateChange will handle state update
     } catch (err) {
+      console.error('authStore: Login exception:', err);
       setState(prev => ({ ...prev, isLoading: false }));
       throw err;
     }

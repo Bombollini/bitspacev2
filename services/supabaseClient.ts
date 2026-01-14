@@ -9,11 +9,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 console.log('Initializing Supabase Client (Persistence: ON)');
+console.log('Supabase URL:', supabaseUrl ? supabaseUrl.trim() : 'MISSING');
+console.log('Supabase Key provided:', supabaseAnonKey ? 'YES' : 'NO');
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: false, // Re-enabled for proper UX
-    autoRefreshToken: true,
+    persistSession: false,
+    autoRefreshToken: false,
     detectSessionInUrl: false
   }
 });

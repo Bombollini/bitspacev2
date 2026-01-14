@@ -1,5 +1,5 @@
 import { api } from './apiClient';
-import { CreateProjectDto, UpdateProjectDto } from '@bitspace/contracts';
+import { CreateProjectDto, UpdateProjectDto } from '../types';
 
 // Extending the existing api object or creating a standalone service that uses the api wrapper (or axiosInstance directly if exported)
 // Since apiClient.ts exports 'api' object which wraps calls, we can either add to it or use it.

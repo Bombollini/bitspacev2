@@ -78,16 +78,16 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+      <div className="glass-panel w-full max-w-md rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border-white/10 overflow-hidden animate-scale-up">
+        <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/5">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Invite Member</h3>
-            <p className="text-xs text-slate-500 mt-1">Select a user to add to this project</p>
+            <h3 className="text-xl font-bold text-white font-display tracking-tight">Invite Member</h3>
+            <p className="text-xs text-slate-400 mt-1">Select a user to add to this project</p>
           </div>
           <button 
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg hover:bg-slate-100"
+            className="text-slate-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
           >
             <X size={20} />
           </button>
@@ -96,20 +96,20 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
         <div className="p-6 space-y-6">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <input 
               type="text" 
               placeholder="Search by name or email..." 
               value={query}
               onChange={handleSearchChange}
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-black/40 border border-white/10 rounded-xl outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple text-white placeholder-slate-600 transition-all"
             />
           </div>
 
           {/* Results */}
-          <div className="space-y-2 max-h-[240px] overflow-y-auto pr-2">
+          <div className="space-y-2 max-h-[240px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             {isSearching ? (
-                <div className="text-center py-8 text-slate-400 text-xs">Loading users...</div>
+                <div className="text-center py-8 text-slate-500 text-xs">Loading users...</div>
             ) : filteredUsers.length > 0 ? (
               filteredUsers.map(user => (
                 <div 
@@ -117,30 +117,30 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
                   onClick={() => setSelectedUser(user)}
                   className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                     selectedUser?.id === user.id 
-                      ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' 
-                      : 'border-slate-100 hover:border-blue-200 hover:bg-slate-50'
+                      ? 'bg-neon-purple/10 border-neon-purple/50 shadow-[0_0_15px_rgba(188,19,254,0.2)]' 
+                      : 'border-white/5 hover:border-white/20 hover:bg-white/5'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <img 
                       src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`} 
                       alt="" 
-                      className="w-10 h-10 rounded-full bg-slate-200 object-cover"
+                      className="w-10 h-10 rounded-full bg-slate-800 object-cover border border-white/10"
                     />
                     <div>
-                      <p className="text-sm font-bold text-slate-900">{user.name}</p>
-                      <p className="text-xs text-slate-500">{user.email}</p>
+                      <p className="text-sm font-bold text-white">{user.name}</p>
+                      <p className="text-xs text-slate-400">{user.email}</p>
                     </div>
                   </div>
                   {selectedUser?.id === user.id && (
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white">
+                    <div className="w-6 h-6 bg-neon-purple rounded-full flex items-center justify-center text-black shadow-[0_0_10px_rgba(188,19,254,0.5)]">
                       <Check size={14} strokeWidth={3} />
                     </div>
                   )}
                 </div>
               ))
             ) : (
-                <div className="text-center py-8 text-slate-400 text-sm">
+                <div className="text-center py-8 text-slate-500 text-sm">
                     No users found matching "{query}"
                 </div>
             )}
@@ -148,14 +148,14 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
 
           {/* Submit */}
           {selectedUser && (
-            <div className="pt-4 border-t border-slate-100 animate-in slide-in-from-bottom-2 fade-in">
+            <div className="pt-4 border-t border-white/10 animate-fade-in">
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full py-3 bg-neon-purple hover:bg-white text-black rounded-xl font-bold shadow-[0_0_20px_rgba(188,19,254,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed group duration-300"
               >
                 {isSubmitting ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                 ) : (
                     <>
                         <UserPlus size={18} />

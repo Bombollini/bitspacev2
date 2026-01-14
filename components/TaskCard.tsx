@@ -13,23 +13,23 @@ interface TaskCardProps {
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, onDragStart }) => {
   return (
     <div 
-      className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing group animate-in fade-in duration-300"
+      className="bg-white/5 p-4 rounded-xl border border-white/5 hover:border-neon-purple/50 shadow-sm hover:shadow-[0_0_15px_rgba(188,19,254,0.2)] transition-all cursor-grab active:cursor-grabbing group animate-scale-up backdrop-blur-sm"
       onClick={() => onSelect(task)}
       draggable={!!onDragStart}
       onDragStart={(e) => onDragStart && onDragStart(e, task)}
     >
-      <div className="flex justify-between items-start mb-2">
+      <div className="flex justify-between items-start mb-3">
         <Badge type="priority" value={task.priority} />
       </div>
       
-      <h4 className="text-sm font-medium text-slate-800 mb-2 line-clamp-2">
+      <h4 className="text-sm font-semibold text-white mb-3 line-clamp-2 group-hover:text-neon-purple transition-colors">
         {task.title}
       </h4>
 
-      <div className="flex items-center justify-between mt-4">
+      <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/5">
         <div className="flex items-center gap-2 text-slate-400">
-          <div className="flex items-center gap-1 text-[11px]">
-            <Calendar size={12} />
+          <div className="flex items-center gap-1.5 text-[11px] font-medium">
+            <Calendar size={12} className="text-neon-blue"/>
             <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'No Date'}</span>
           </div>
         </div>
@@ -39,7 +39,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, onDragStart 
             src={task.assignee.avatarUrl} 
             alt={task.assignee.name}
             title={task.assignee.name}
-            className="w-6 h-6 rounded-full border-2 border-white"
+            className="w-7 h-7 rounded-full border border-white/10 group-hover:border-neon-purple/50 transition-colors"
           />
         )}
       </div>

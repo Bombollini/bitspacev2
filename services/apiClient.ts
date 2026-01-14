@@ -1,6 +1,6 @@
 
 import { supabase } from './supabaseClient';
-import { User, Project, Task, Activity, CreateProjectDto, UserRole, ProjectStatus, TaskStatus, TaskPriority, Comment } from '../types';
+import { User, Project, Task, Activity, CreateProjectDto, UserRole, ProjectStatus, TaskStatus, TaskPriority, Comment, Milestone, CreateMilestoneDto, UpdateMilestoneDto } from '../types';
 
 // Helper to map DB snake_case to CamelCase
 const mapProject = (data: any): Project => ({
@@ -21,6 +21,7 @@ const mapProject = (data: any): Project => ({
 const mapTask = (data: any): Task => ({
   id: data.id,
   projectId: data.project_id,
+  milestoneId: data.milestone_id,
   title: data.title,
   description: data.description,
   status: data.status as TaskStatus,
@@ -322,6 +323,7 @@ export const api = {
         .from('tasks')
         .insert({
             project_id: data.projectId,
+            milestone_id: data.milestoneId,
             title: data.title,
             description: data.description,
             status: data.status || 'BACKLOG',
@@ -354,6 +356,7 @@ export const api = {
         if (data.description) updates.description = data.description;
         if (data.status) updates.status = data.status;
         if (data.assigneeId) updates.assignee_id = data.assigneeId;
+        if (data.milestoneId !== undefined) updates.milestone_id = data.milestoneId;
 
         const { data: task, error } = await supabase
             .from('tasks')
@@ -449,6 +452,75 @@ export const api = {
         return mapComment(data);
     }
   },
+  milestones: {
+    list: async (projectId: string): Promise<Milestone[]> => {
+      const { data, error } = await supabase
+        .from('milestones')
+        .select(`
+            *,
+            tasks:tasks(id, status)
+        `)
+        .eq('project_id', projectId)
+        .order('due_date', { ascending: true });
+
+      if (error) throw error;
+
+      return data.map((m: any) => {
+        const totalTasks = m.tasks.length;
+        const completedTasks = m.tasks.filter((t: any) => t.status === 'DONE').length;
+        const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+        return {
+          id: m.id,
+          projectId: m.project_id,
+          title: m.title,
+          description: m.description,
+          dueDate: m.due_date,
+          status: m.status,
+          createdAt: m.created_at,
+          updatedAt: m.updated_at,
+          progress: progress
+        };
+      });
+    },
+    create: async (data: CreateMilestoneDto) => {
+      const { data: milestone, error } = await supabase
+        .from('milestones')
+        .insert({
+          project_id: data.projectId,
+          title: data.title,
+          description: data.description,
+          due_date: data.dueDate,
+          status: 'OPEN'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return milestone; // No map needed as it's simple usually, but ideally we map
+    },
+    update: async (id: string, data: UpdateMilestoneDto) => {
+        const updates: any = {};
+        if (data.title) updates.title = data.title;
+        if (data.description) updates.description = data.description;
+        if (data.dueDate) updates.due_date = data.dueDate;
+        if (data.status) updates.status = data.status;
+
+        const { data: milestone, error } = await supabase
+            .from('milestones')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return milestone;
+    },
+    delete: async (id: string) => {
+        const { error } = await supabase.from('milestones').delete().eq('id', id);
+        if (error) throw error;
+    }
+  },
   activity: {
     list: async (projectId: string): Promise<Activity[]> => {
       const { data, error } = await supabase
@@ -458,7 +530,8 @@ export const api = {
             user:profiles(id, full_name, email, avatar_url)
         `)
         .eq('project_id', projectId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       if (error) throw error;
       
@@ -478,6 +551,35 @@ export const api = {
           metadata: a.metadata,
           createdAt: a.created_at
       }));
+    },
+    get: async (id: string): Promise<Activity> => {
+        const { data, error } = await supabase
+            .from('activities')
+            .select(`
+                *,
+                user:profiles(id, full_name, email, avatar_url)
+            `)
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+        
+        return {
+            id: data.id,
+            projectId: data.project_id,
+            userId: data.user_id,
+            user: data.user ? {
+                id: data.user.id,
+                name: data.user.full_name,
+                email: data.user.email,
+                avatarUrl: data.user.avatar_url,
+            } : undefined,
+            action: data.action_type,
+            targetType: data.entity_type,
+            targetId: data.entity_id,
+            metadata: data.metadata,
+            createdAt: data.created_at
+        };
     }
   },
   search: {

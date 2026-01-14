@@ -60,9 +60,17 @@ export interface CreateProjectDto {
   description?: string;
 }
 
+export interface UpdateProjectDto {
+  name?: string;
+  description?: string;
+  status?: ProjectStatus;
+  ownerId?: string;
+}
+
 export interface Task {
   id: string;
   projectId: string; // Mapped from project_id
+  milestoneId?: string | null; // Mapped from milestone_id
   title: string;
   description?: string;
   status: TaskStatus;
@@ -73,6 +81,55 @@ export interface Task {
   createdAt: string; // Mapped from created_at
   updatedAt: string; // Mapped from updated_at
 }
+
+export interface CreateTaskDto {
+  title: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  assigneeId?: string;
+  dueDate?: string;
+  projectId: string;
+  milestoneId?: string;
+}
+
+
+export interface Milestone {
+  id: string;
+  projectId: string; // Mapped from project_id
+  title: string;
+  description?: string;
+  dueDate?: string; // Mapped from due_date
+  status: 'OPEN' | 'CLOSED';
+  createdAt: string; // Mapped from created_at
+  updatedAt: string; // Mapped from updated_at
+  progress?: number; // Helpers
+}
+
+export interface CreateMilestoneDto {
+  projectId: string;
+  title: string;
+  description?: string;
+  dueDate?: string;
+}
+
+export interface UpdateMilestoneDto {
+  title?: string;
+  description?: string;
+  dueDate?: string;
+  status?: 'OPEN' | 'CLOSED';
+}
+
+export interface UpdateTaskDto {
+  title?: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  assigneeId?: string;
+  dueDate?: string;
+  milestoneId?: string | null;
+}
+
 
 export interface Member {
   userId: string;

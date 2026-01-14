@@ -12,8 +12,15 @@ export const LoginPage: React.FC = () => {
   
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, signup } = useAuth();
+  const { login, signup, user, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (!isLoading && user) {
+      console.log('LoginPage: User already authenticated, redirecting to dashboard...');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, isLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +28,11 @@ export const LoginPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       if (isLogin) {
+        console.log('LoginPage: Attempting login...');
+        const start = performance.now();
         await login({ email, password });
+        const end = performance.now();
+        console.log(`LoginPage: Login completed in ${(end - start).toFixed(2)}ms`);
         navigate('/dashboard');
       } else {
         await signup({ email, password, name, role });
@@ -40,33 +51,34 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="max-w-md w-full animate-fade-in">
         <div className="text-center mb-10">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl mx-auto mb-4 shadow-lg">B</div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+            <img src="/logo.png" alt="Bitspace Logo" className="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-[0_0_15px_rgba(0,243,255,0.4)] animate-pulse-glow" />
+            <h1 className="text-3xl font-bold text-white tracking-tight font-display drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
                 {isLogin ? 'Welcome Back' : 'Create Account'}
             </h1>
-            <p className="text-slate-500 mt-2">
+            <p className="text-slate-400 mt-2">
                 {isLogin ? 'Sign in to your Bitspace account' : 'Join Bitspace to manage your projects'}
             </p>
         </div>
 
-        <div className="bg-white p-8 rounded-2xl shadow-xl shadow-slate-200/50">
+        <div className="glass-panel p-8 rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.5)] border-white/10">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-600 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                 {error}
               </div>
             )}
             
             {!isLogin && (
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Full Name</label>
+                  <label className="block text-sm font-semibold text-slate-300 mb-1.5">Full Name</label>
                   <input 
                     type="text"
                     required
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue text-white placeholder-slate-600 transition-all"
                     value={name}
                     onChange={e => setName(e.target.value)}
                     placeholder="John Doe"
@@ -75,11 +87,11 @@ export const LoginPage: React.FC = () => {
             )}
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email Address</label>
+              <label className="block text-sm font-semibold text-slate-300 mb-1.5">Email Address</label>
               <input 
                 type="email"
                 required
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue text-white placeholder-slate-600 transition-all"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="name@company.com"
@@ -88,13 +100,13 @@ export const LoginPage: React.FC = () => {
             
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-semibold text-slate-700">Password</label>
-                {isLogin && <a href="#" className="text-xs text-blue-600 hover:underline">Forgot?</a>}
+                <label className="block text-sm font-semibold text-slate-300">Password</label>
+                {isLogin && <a href="#" className="text-xs text-neon-blue hover:text-white transition-colors">Forgot?</a>}
               </div>
               <input 
                 type="password"
                 required
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue text-white placeholder-slate-600 transition-all"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -103,9 +115,9 @@ export const LoginPage: React.FC = () => {
 
             {!isLogin && (
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Role</label>
+                  <label className="block text-sm font-semibold text-slate-300 mb-1.5">Role</label>
                   <select 
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue text-white transition-all [&>option]:bg-slate-900"
                     value={role}
                     onChange={e => setRole(e.target.value)}
                   >
@@ -119,25 +131,25 @@ export const LoginPage: React.FC = () => {
             <button 
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-neon-blue hover:bg-white text-black font-bold py-3 rounded-xl shadow-[0_0_20px_rgba(0,243,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group duration-300"
             >
-              {isSubmitting ? 'Loading...' : (isLogin ? 'Sign In' : 'Create Account')}
+              {isSubmitting ? 'Processing...' : (isLogin ? 'Sign In' : 'Initialize Account')}
             </button>
           </form>
 
-          <div className="mt-8 pt-8 border-t border-slate-100 text-center text-sm text-slate-500">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <div className="mt-8 pt-8 border-t border-white/10 text-center text-sm text-slate-400">
+            {isLogin ? "Don't have an access ID? " : "Already have an account? "}
             <button 
                 onClick={() => setIsLogin(!isLogin)} 
-                className="text-blue-600 font-bold hover:underline"
+                className="text-neon-blue font-bold hover:text-white transition-colors hover:underline"
             >
                 {isLogin ? 'Sign Up' : 'Log In'}
             </button>
           </div>
         </div>
         
-        <p className="text-center text-xs text-slate-400 mt-8">
-          &copy; 2024 Bitspace Inc. All rights reserved.
+        <p className="text-center text-xs text-slate-500 mt-8">
+          &copy; 2026 Bitspace Inc. All rights reserved.
         </p>
       </div>
     </div>

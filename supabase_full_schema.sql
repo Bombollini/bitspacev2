@@ -175,10 +175,7 @@ using (
     OR
     user_id = auth.uid()
     OR
-    exists (
-        select 1 from public.projects 
-        where id = public.project_members.project_id
-    )
+    public.is_project_member(project_id)
 );
 
 -- Manage: Only Owners works
