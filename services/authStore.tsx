@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { User, AuthState, UserRole } from "../types";
 import { supabase } from "./supabaseClient";
 
+const SESSION_TIMEOUT_MS = 3000;
+const PROFILE_TIMEOUT_MS = 3000;
+
 const withTimeout = async <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
   let timeoutId: number | undefined;
   const timeoutPromise = new Promise<T>((_, reject) => {
@@ -50,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log("checkAuth: starting...");
 
-      const sessionResult = await withTimeout(supabase.auth.getSession(), 6000, "supabase.auth.getSession()");
+      const sessionResult = await withTimeout(supabase.auth.getSession(), SESSION_TIMEOUT_MS, "supabase.auth.getSession()");
 
       const {
         data: { session },
@@ -70,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Fetch Profile
       console.log("checkAuth: fetching profile for", session.user.id);
 
-      const profileResult = await withTimeout(supabase.from("profiles").select("*").eq("id", session.user.id).single(), 6000, "profiles.select(single)");
+      const profileResult = await withTimeout(supabase.from("profiles").select("*").eq("id", session.user.id).single(), PROFILE_TIMEOUT_MS, "profiles.select(single)");
 
       const { data: profile, error: profileError } = profileResult as any;
 
@@ -100,8 +103,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If auth init hangs or session storage is corrupted, recover by clearing auth storage.
       // This prevents the app being stuck on the loading screen forever.
       const message = (err as any)?.message || "";
-      if (message.includes("timed out")) {
-        console.warn("checkAuth: timeout detected, clearing Supabase auth storage");
+      // Only clear auth storage if the *session retrieval* itself timed out.
+      // A slow/blocked profile query should NOT log the user out.
+      if (message.includes("supabase.auth.getSession()") && message.includes("timed out")) {
+        console.warn("checkAuth: getSession timeout detected, clearing Supabase auth storage");
         clearSupabaseAuthStorage();
       }
 
@@ -120,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Also guard with a timeout so auth state changes can't freeze the UI.
         let profile: any = null;
         try {
-          const profileResult = await withTimeout(supabase.from("profiles").select("*").eq("id", session.user.id).single(), 6000, "profiles.select(single) (onAuthStateChange)");
+          const profileResult = await withTimeout(supabase.from("profiles").select("*").eq("id", session.user.id).single(), PROFILE_TIMEOUT_MS, "profiles.select(single) (onAuthStateChange)");
           profile = (profileResult as any)?.data ?? null;
         } catch (e) {
           console.warn("onAuthStateChange: profile fetch failed, continuing with basic session user", e);
@@ -135,6 +140,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           createdAt: profile?.created_at || new Date().toISOString(),
         };
         setState({ user, accessToken: session.access_token, isLoading: false });
+
+        // If profile couldn't be fetched (timeout/network), retry once in the background.
+        if (!profile) {
+          window.setTimeout(async () => {
+            try {
+              const retry = await withTimeout(supabase.from("profiles").select("*").eq("id", session.user.id).single(), PROFILE_TIMEOUT_MS, "profiles.select(single) (retry)");
+              const retryProfile = (retry as any)?.data ?? null;
+              if (!retryProfile) return;
+
+              setState((prev) => {
+                if (!prev.accessToken || prev.accessToken !== session.access_token) return prev;
+                if (!prev.user || prev.user.id !== session.user.id) return prev;
+                return {
+                  ...prev,
+                  user: {
+                    ...prev.user,
+                    name: retryProfile.full_name || prev.user.email,
+                    avatarUrl: retryProfile.avatar_url,
+                    role: (retryProfile.role as UserRole) || prev.user.role,
+                    createdAt: retryProfile.created_at || prev.user.createdAt,
+                  },
+                };
+              });
+            } catch (e) {
+              // Silent; we already logged the initial failure.
+            }
+          }, 1500);
+        }
       } else {
         setState({ user: null, accessToken: null, isLoading: false });
       }

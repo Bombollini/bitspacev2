@@ -192,6 +192,10 @@ export const ProjectDetailPage: React.FC = () => {
   };
 
   const handleDeleteProject = async () => {
+    if (currentUser?.role !== UserRole.OWNER) {
+      alert("Only owners can delete projects");
+      return;
+    }
     if (!confirm("Are you sure you want to delete this project? This action cannot be undone.")) return;
     try {
       await api.projects.remove(projectId!);
@@ -204,6 +208,10 @@ export const ProjectDetailPage: React.FC = () => {
   };
 
   const handleUpdateProject = async (data: CreateProjectDto) => {
+    if (currentUser?.role !== UserRole.OWNER) {
+      alert("Only owners can edit projects");
+      return;
+    }
     try {
       const updated = await api.projects.update(projectId!, data);
       setProject((prev) => (prev ? { ...prev, ...updated } : updated));

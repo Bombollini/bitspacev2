@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { X, Search, UserPlus, Check } from 'lucide-react';
-import { User, UserRole } from '../types';
-import { api } from '../services/apiClient';
+import React, { useState, useEffect } from "react";
+import { X, Search, UserPlus, Check } from "lucide-react";
+import { User, UserRole } from "../types";
+import { api } from "../services/apiClient";
+import { useAuth } from "../services/authStore";
 
 interface InviteMemberModalProps {
   isOpen: boolean;
@@ -11,14 +12,9 @@ interface InviteMemberModalProps {
   onInvite: () => void;
 }
 
-export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  projectId,
-  currentMembers,
-  onInvite
-}) => {
-  const [query, setQuery] = useState('');
+export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ isOpen, onClose, projectId, currentMembers, onInvite }) => {
+  const { user: currentUser } = useAuth();
+  const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -27,49 +23,53 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen) {
-        loadUsers();
+      loadUsers();
     }
   }, [isOpen]);
 
   const loadUsers = async () => {
-      setIsSearching(true);
-      try {
-        const results = await api.profiles.search('');
-        setSearchResults(results);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsSearching(false);
-      }
+    setIsSearching(true);
+    try {
+      const results = await api.profiles.search("");
+      setSearchResults(results);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
-  const filteredUsers = searchResults.filter(u => {
-      if (currentMembers.find(m => m.id === u.id)) return false;
-      if (!query) return true;
-      const lowerQuery = query.toLowerCase();
-      return u.name.toLowerCase().includes(lowerQuery) || u.email.toLowerCase().includes(lowerQuery);
+  const filteredUsers = searchResults.filter((u) => {
+    if (currentMembers.find((m) => m.id === u.id)) return false;
+    if (!query) return true;
+    const lowerQuery = query.toLowerCase();
+    return u.name.toLowerCase().includes(lowerQuery) || u.email.toLowerCase().includes(lowerQuery);
   });
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setQuery(e.target.value);
+    setQuery(e.target.value);
   };
 
   const handleSubmit = async () => {
+    if (!currentUser || currentUser.role !== UserRole.OWNER) {
+      alert("Only owners can invite members");
+      return;
+    }
     if (!selectedUser) return;
 
     setIsSubmitting(true);
     try {
       // Default to EDITOR role as per schema (OWNER, EDITOR, VIEWER)
-      await api.projects.addMember(projectId, selectedUser.id, 'EDITOR');
+      await api.projects.addMember(projectId, selectedUser.id, "EDITOR");
       onInvite();
       onClose();
       // Reset state
-      setQuery('');
+      setQuery("");
       setSearchResults([]);
       setSelectedUser(null);
     } catch (err) {
       console.error(err);
-      alert('Failed to add member');
+      alert("Failed to add member");
     } finally {
       setIsSubmitting(false);
     }
@@ -85,23 +85,23 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
             <h3 className="text-xl font-bold text-white font-display tracking-tight">Invite Member</h3>
             <p className="text-xs text-slate-400 mt-1">Select a user to add to this project</p>
           </div>
-          <button 
-            onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
-          >
+          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10">
             <X size={20} />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
+          {currentUser?.role !== UserRole.OWNER && <div className="bg-rose-500/10 border border-rose-500/30 text-rose-300 px-4 py-3 rounded-lg text-sm">Only owners can invite members.</div>}
+
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-            <input 
-              type="text" 
-              placeholder="Search by name or email..." 
+            <input
+              type="text"
+              placeholder="Search by name or email..."
               value={query}
               onChange={handleSearchChange}
+              disabled={currentUser?.role !== UserRole.OWNER}
               className="w-full pl-10 pr-4 py-3 bg-black/40 border border-white/10 rounded-xl outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple text-white placeholder-slate-600 transition-all"
             />
           </div>
@@ -109,24 +109,20 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
           {/* Results */}
           <div className="space-y-2 max-h-[240px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             {isSearching ? (
-                <div className="text-center py-8 text-slate-500 text-xs">Loading users...</div>
+              <div className="text-center py-8 text-slate-500 text-xs">Loading users...</div>
+            ) : currentUser?.role !== UserRole.OWNER ? (
+              <div className="text-center py-8 text-slate-500 text-sm">Inviting is disabled for members.</div>
             ) : filteredUsers.length > 0 ? (
-              filteredUsers.map(user => (
-                <div 
+              filteredUsers.map((user) => (
+                <div
                   key={user.id}
                   onClick={() => setSelectedUser(user)}
                   className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                    selectedUser?.id === user.id 
-                      ? 'bg-neon-purple/10 border-neon-purple/50 shadow-[0_0_15px_rgba(188,19,254,0.2)]' 
-                      : 'border-white/5 hover:border-white/20 hover:bg-white/5'
+                    selectedUser?.id === user.id ? "bg-neon-purple/10 border-neon-purple/50 shadow-[0_0_15px_rgba(188,19,254,0.2)]" : "border-white/5 hover:border-white/20 hover:bg-white/5"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <img 
-                      src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`} 
-                      alt="" 
-                      className="w-10 h-10 rounded-full bg-slate-800 object-cover border border-white/10"
-                    />
+                    <img src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`} alt="" className="w-10 h-10 rounded-full bg-slate-800 object-cover border border-white/10" />
                     <div>
                       <p className="text-sm font-bold text-white">{user.name}</p>
                       <p className="text-xs text-slate-400">{user.email}</p>
@@ -140,9 +136,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
                 </div>
               ))
             ) : (
-                <div className="text-center py-8 text-slate-500 text-sm">
-                    No users found matching "{query}"
-                </div>
+              <div className="text-center py-8 text-slate-500 text-sm">No users found matching "{query}"</div>
             )}
           </div>
 
@@ -155,12 +149,12 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
                 className="w-full py-3 bg-neon-purple hover:bg-white text-black rounded-xl font-bold shadow-[0_0_20px_rgba(188,19,254,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed group duration-300"
               >
                 {isSubmitting ? (
-                    <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                 ) : (
-                    <>
-                        <UserPlus size={18} />
-                        Add Member
-                    </>
+                  <>
+                    <UserPlus size={18} />
+                    Add Member
+                  </>
                 )}
               </button>
             </div>

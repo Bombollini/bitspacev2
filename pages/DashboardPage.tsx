@@ -59,6 +59,10 @@ export const DashboardPage: React.FC = () => {
   };
 
   const handleCreateProject = async (data: CreateProjectDto) => {
+    if (!currentUser || currentUser.role !== UserRole.OWNER) {
+      alert("Only owners can create projects");
+      return;
+    }
     try {
       const newProject = await api.projects.create(data);
       setProjects([...projects, newProject]);

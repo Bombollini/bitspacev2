@@ -12,7 +12,7 @@ console.log("Supabase URL:", supabaseUrl ? supabaseUrl.trim() : "MISSING");
 console.log("Supabase Key provided:", supabaseAnonKey ? "YES" : "NO");
 
 const fetchWithTimeout: typeof fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-  const timeoutMs = 12000;
+  const timeoutMs = 3000;
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
 
