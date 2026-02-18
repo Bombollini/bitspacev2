@@ -158,7 +158,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                 <button 
                                                     key={project.id}
                                                     onClick={() => {
-                                                        navigate(`/project/${project.id}`);
+                                                        navigate(`/projects/${project.id}`);
                                                         setShowResults(false);
                                                         setSearchQuery('');
                                                     }}
