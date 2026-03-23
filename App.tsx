@@ -6,6 +6,9 @@ import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { ProjectsPage } from './pages/ProjectsPage';
+import { MeetingsPage } from './pages/MeetingsPage';
+import { MeetingDetailPage } from './pages/MeetingDetailPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -43,6 +46,15 @@ const App: React.FC = () => {
               </ProtectedRoute>
             } 
           />
+
+          <Route 
+            path="/projects" 
+            element={
+              <ProtectedRoute>
+                <ProjectsPage />
+              </ProtectedRoute>
+            } 
+          />
           
           <Route 
             path="/projects/:projectId" 
@@ -58,6 +70,24 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/meetings" 
+            element={
+              <ProtectedRoute>
+                <MeetingsPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/meetings/:meetingId" 
+            element={
+              <ProtectedRoute>
+                <MeetingDetailPage />
               </ProtectedRoute>
             } 
           />

@@ -1,0 +1,194 @@
+import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import { api } from "../services/apiClient";
+import { Project, UserRole, CreateProjectDto } from "../types";
+import { useAuth } from "../services/authStore";
+import { Layout } from "../components/Layout";
+import { Briefcase, CheckCircle2, Clock, ChevronRight, Plus, FileText } from "lucide-react";
+import { NewProjectModal } from "../components/NewProjectModal";
+import { generateAllProjectsReportPDF } from "../utils/pdfGenerator";
+import { seedDemoData } from "../utils/seedDemoData";
+
+export const ProjectsPage: React.FC = () => {
+  const { user: currentUser } = useAuth();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const didInitialFetch = useRef(false);
+
+  useEffect(() => {
+    if (didInitialFetch.current) return;
+    didInitialFetch.current = true;
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    setIsLoading(true);
+    try {
+      const data = await api.projects.list();
+      setProjects(data);
+    } catch (err: any) {
+      console.error("Fetch error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSeedData = async () => {
+    if (!import.meta.env.DEV) return;
+    if (!currentUser || currentUser.role !== UserRole.OWNER) return;
+    setIsSeeding(true);
+    try {
+      const result = await seedDemoData({ projectsCount: 3, tasksPerProject: 6 });
+      await fetchProjects();
+      alert(`Seed complete: ${result.projectsCreated} projects, ${result.tasksCreated} tasks.`);
+    } catch (err: any) {
+      console.error("Seed failed:", err);
+      alert(`Seed failed: ${err?.message || "Unknown error"}`);
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
+  const handleCreateProject = async (data: CreateProjectDto) => {
+    if (!currentUser || currentUser.role !== UserRole.OWNER) {
+      alert("Only owners can create projects");
+      return;
+    }
+    try {
+      const newProject = await api.projects.create(data);
+      setProjects([...projects, newProject]);
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Failed to create project", err);
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    if (!currentUser || currentUser.role !== UserRole.OWNER) return;
+    setIsGeneratingReport(true);
+    try {
+      const ownedProjects = projects.filter((p) => p.ownerId === currentUser.id);
+      const data = await Promise.all(
+        ownedProjects.map(async (project) => {
+          const members = await api.projects.members(project.id);
+          return { project, members };
+        }),
+      );
+      generateAllProjectsReportPDF(data);
+    } catch (err) {
+      console.error("Failed to generate report", err);
+      alert("Failed to generate report");
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
+  return (
+    <Layout>
+      <div className="space-y-8 animate-fade-in">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-3xl font-display font-bold text-white tracking-tight drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">All Projects</h2>
+          <p className="text-slate-400 max-w-2xl">Manage your active developments and track team progress.</p>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-bold text-white font-display flex items-center gap-2">
+            <span className="w-1 h-6 bg-neon-purple rounded-full shadow-[0_0_10px_#bc13fe]"></span>
+            Projects List
+          </h3>
+          {currentUser?.role === UserRole.OWNER && (
+            <div className="flex items-center gap-3">
+              {import.meta.env.DEV && (
+                <button
+                  onClick={handleSeedData}
+                  disabled={isSeeding}
+                  className="flex items-center gap-2 px-4 py-2 bg-transparent border border-white/20 text-slate-300 rounded-lg hover:bg-white/5 hover:text-white hover:border-white/50 transition-all text-sm font-medium disabled:opacity-50"
+                >
+                  {isSeeding ? "Seeding..." : "Seed Data"}
+                </button>
+              )}
+              <button
+                onClick={handleGenerateReport}
+                disabled={isGeneratingReport}
+                className="flex items-center gap-2 px-4 py-2 bg-transparent border border-white/20 text-slate-300 rounded-lg hover:bg-white/5 hover:text-white hover:border-white/50 transition-all text-sm font-medium disabled:opacity-50"
+              >
+                <FileText size={18} />
+                {isGeneratingReport ? "Generating..." : "Generate Report"}
+              </button>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-neon-blue/20 text-neon-blue border border-neon-blue/50 rounded-lg hover:bg-neon-blue/30 hover:shadow-[0_0_15px_rgba(0,243,255,0.4)] transition-all text-sm font-medium group"
+              >
+                <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" /> New Project
+              </button>
+            </div>
+          )}
+        </div>
+
+        <NewProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleCreateProject} />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {isLoading ? (
+            [0, 1].map((i) => <div key={i} className="h-56 glass-panel animate-pulse rounded-2xl bg-white/5"></div>)
+          ) : projects.length === 0 ? (
+            <div className="col-span-full py-16 text-center glass-panel rounded-3xl border border-dashed border-white/10">
+              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <Briefcase className="text-slate-500" size={32} />
+              </div>
+              <p className="text-slate-400 text-lg">No projects found in the system.</p>
+              <p className="text-slate-600 text-sm mt-2">Initialize a new project to begin.</p>
+            </div>
+          ) : (
+            projects.map((project, index) => (
+              <Link
+                key={project.id}
+                to={`/projects/${project.id}`}
+                className="glass-panel p-6 rounded-2xl group hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(188,19,254,0.15)] transition-all duration-300 border-l-4 border-l-transparent hover:border-l-neon-purple relative overflow-hidden"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <ChevronRight className="text-neon-purple" size={24} />
+                </div>
+
+                <div className="flex justify-between items-start mb-6">
+                  <div className="w-14 h-14 bg-gradient-to-br from-white/10 to-transparent rounded-2xl border border-white/10 flex items-center justify-center group-hover:border-neon-purple/50 transition-colors shadow-inner">
+                    <Briefcase className="text-slate-400 group-hover:text-neon-purple transition-colors duration-300" size={24} />
+                  </div>
+                </div>
+
+                <h4 className="text-xl font-bold text-white mb-2 font-display tracking-tight group-hover:text-neon-purple transition-colors">{project.name}</h4>
+                <p className="text-sm text-slate-400 mb-8 line-clamp-2 h-10">{project.description}</p>
+
+                <div className="space-y-4 bg-black/20 p-4 rounded-xl border border-white/5">
+                  <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <span>Progress</span>
+                    <span className="text-white">{Math.round(((project.stats?.completedTasks || 0) / (project.stats?.totalTasks || 1)) * 100)}%</span>
+                  </div>
+                  <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                    <div
+                      className="h-full bg-gradient-to-r from-neon-blue to-neon-purple rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(0,243,255,0.5)]"
+                      style={{ width: `${((project.stats?.completedTasks || 0) / (project.stats?.totalTasks || 1)) * 100}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex items-center gap-4 pt-1 border-t border-white/5 mt-2">
+                    <div className="text-xs font-medium text-slate-400 flex items-center gap-2">
+                      <CheckCircle2 size={14} className="text-emerald-400" />
+                      <span className="text-emerald-100">{project.stats?.completedTasks}</span> Done
+                    </div>
+                    <div className="text-xs font-medium text-slate-400 flex items-center gap-2">
+                      <Clock size={14} className="text-blue-400" />
+                      <span className="text-blue-100">{project.stats?.totalTasks}</span> Total
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+      </div>
+    </Layout>
+  );
+};

@@ -78,6 +78,7 @@ export interface Task {
   assigneeId?: string; // Mapped from assignee_id
   assignee?: User; // Joined field
   dueDate?: string; // Mapped from due_date
+  attachmentUrl?: string; // Mapped from attachment_url
   createdAt: string; // Mapped from created_at
   updatedAt: string; // Mapped from updated_at
 }
@@ -91,6 +92,7 @@ export interface CreateTaskDto {
   dueDate?: string;
   projectId: string;
   milestoneId?: string;
+  attachmentUrl?: string;
 }
 
 
@@ -128,6 +130,7 @@ export interface UpdateTaskDto {
   assigneeId?: string;
   dueDate?: string;
   milestoneId?: string | null;
+  attachmentUrl?: string | null;
 }
 
 
@@ -163,4 +166,31 @@ export interface Comment {
   content: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Meeting {
+  id: string;
+  projectId: string; // Mapped from project_id
+  title: string;
+  meetingDate: string; // Mapped from meeting_date
+  meetingLink?: string; // Mapped from meeting_link
+  retrospective?: string;
+  createdBy?: string; // Mapped from created_by
+  createdAt: string; // Mapped from created_at
+  updatedAt: string; // Mapped from updated_at
+}
+
+export interface CreateMeetingDto {
+  projectId: string;
+  title: string;
+  meetingDate: string;
+  meetingLink?: string;
+  retrospective?: string;
+}
+
+export interface UpdateMeetingDto {
+  title?: string;
+  meetingDate?: string;
+  meetingLink?: string;
+  retrospective?: string;
 }

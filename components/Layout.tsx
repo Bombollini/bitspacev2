@@ -13,7 +13,8 @@ import {
   X,
   Plus,
   Bell,
-  Search
+  Search,
+  Calendar
 } from 'lucide-react';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -53,7 +54,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'My Profile', href: '/profile', icon: UserIcon },
+    { name: 'Projects', href: '/projects', icon: FolderKanban },
+    { name: 'Meetings', href: '/meetings', icon: Calendar },
+    { name: 'Settings', href: '/profile', icon: UserIcon },
   ];
 
   const handleLogout = () => {
@@ -79,7 +82,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           <nav className="flex-1 px-4 space-y-2 mt-6">
             {navigation.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.href;
+              const isActive = location.pathname.startsWith(item.href);
               return (
                 <Link
                   key={item.name}

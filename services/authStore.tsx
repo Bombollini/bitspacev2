@@ -38,15 +38,19 @@ interface AuthContextType extends AuthState {
   signup: (credentials: any) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
+  cancelRecovery: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<AuthState>({
+  const [state, setState] = useState<AuthState & { isRecoveringPassword?: boolean }>({
     user: null,
     accessToken: null,
     isLoading: true,
+    isRecoveringPassword: false,
   });
 
   const checkAuth = useCallback(async () => {
@@ -119,7 +123,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('onAuthStateChange event:', event);
+      if (event === 'PASSWORD_RECOVERY') {
+        setState((prev) => ({ ...prev, isRecoveringPassword: true }));
+      }
+
       if (session?.user) {
         // We could optimize this to not re-fetch profile every time, but for now it's safe.
         // Also guard with a timeout so auth state changes can't freeze the UI.
@@ -247,10 +256,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     setState((prev) => ({ ...prev, isLoading: true }));
     await supabase.auth.signOut();
-    setState({ user: null, accessToken: null, isLoading: false });
+    setState({ user: null, accessToken: null, isLoading: false, isRecoveringPassword: false });
   };
 
-  return <AuthContext.Provider value={{ ...state, login, signup, logout, checkAuth }}>{children}</AuthContext.Provider>;
+  const resetPassword = async (email: string) => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/#/login', // HashRouter redirect
+      });
+      if (error) throw error;
+    } finally {
+      setState((prev) => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  const updatePassword = async (password: string) => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+      setState((prev) => ({ ...prev, isRecoveringPassword: false }));
+    } finally {
+      setState((prev) => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  const cancelRecovery = () => {
+    setState((prev) => ({ ...prev, isRecoveringPassword: false }));
+  };
+
+  return <AuthContext.Provider value={{ ...state, login, signup, logout, checkAuth, resetPassword, updatePassword, cancelRecovery }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

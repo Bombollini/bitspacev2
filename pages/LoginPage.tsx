@@ -5,14 +5,17 @@ import { useAuth } from '../services/authStore';
 
 export const LoginPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState('MEMBER');
   
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, signup, user, isLoading } = useAuth();
+  const { login, signup, user, isLoading, isRecoveringPassword, resetPassword, updatePassword, cancelRecovery } = (useAuth as any)();
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -25,9 +28,19 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMsg(null);
     setIsSubmitting(true);
     try {
-      if (isLogin) {
+      if (isRecoveringPassword) {
+        await updatePassword(newPassword);
+        setSuccessMsg("Password successfully updated! You are now logged in.");
+        setTimeout(() => navigate('/dashboard'), 2000);
+      } else if (isForgotPassword) {
+        await resetPassword(email);
+        setSuccessMsg("Password reset link sent to your email!");
+        setIsForgotPassword(false);
+        setPassword('');
+      } else if (isLogin) {
         console.log('LoginPage: Attempting login...');
         const start = performance.now();
         await login({ email, password });
@@ -39,7 +52,7 @@ export const LoginPage: React.FC = () => {
         // After signup, switch to login view and show success message
         setIsLogin(true);
         setError(null); // Clear errors
-        alert('Account created! Please sign in with your new account.');
+        setSuccessMsg('Account created! Please sign in with your new account.');
       }
     } catch (err: any) {
       console.error('Auth error:', err);
@@ -56,10 +69,10 @@ export const LoginPage: React.FC = () => {
         <div className="text-center mb-10">
             <img src="/logo.png" alt="Bitspace Logo" className="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-[0_0_15px_rgba(0,243,255,0.4)] animate-pulse-glow" />
             <h1 className="text-3xl font-bold text-white tracking-tight font-display drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
-                {isLogin ? 'Welcome Back' : 'Create Account'}
+                {isRecoveringPassword ? 'Reset Password' : isForgotPassword ? 'Forgot Password' : isLogin ? 'Welcome Back' : 'Create Account'}
             </h1>
             <p className="text-slate-400 mt-2">
-                {isLogin ? 'Sign in to your Bitspace account' : 'Join Bitspace to manage your projects'}
+                {isRecoveringPassword ? 'Enter your new password below' : isForgotPassword ? 'We will send you a reset link' : isLogin ? 'Sign in to your Bitspace account' : 'Join Bitspace to manage your projects'}
             </p>
         </div>
 
@@ -71,8 +84,40 @@ export const LoginPage: React.FC = () => {
                 {error}
               </div>
             )}
+            {successMsg && (
+              <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                {successMsg}
+              </div>
+            )}
             
-            {!isLogin && (
+            {isRecoveringPassword ? (
+              <div>
+                <label className="block text-sm font-semibold text-slate-300 mb-1.5">New Password</label>
+                <input 
+                  type="password"
+                  required
+                  className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue text-white placeholder-slate-600 transition-all"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+            ) : isForgotPassword ? (
+              <div>
+                <label className="block text-sm font-semibold text-slate-300 mb-1.5">Email Address</label>
+                <input 
+                  type="email"
+                  required
+                  className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue text-white placeholder-slate-600 transition-all"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="name@company.com"
+                />
+              </div>
+            ) : (
+              <>
+                {!isLogin && (
                 <div>
                   <label className="block text-sm font-semibold text-slate-300 mb-1.5">Full Name</label>
                   <input 
@@ -101,7 +146,7 @@ export const LoginPage: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-sm font-semibold text-slate-300">Password</label>
-                {isLogin && <a href="#" className="text-xs text-neon-blue hover:text-white transition-colors">Forgot?</a>}
+                {isLogin && <button type="button" onClick={() => { setIsForgotPassword(true); setError(null); setSuccessMsg(null); }} className="text-xs text-neon-blue hover:text-white transition-colors">Forgot?</button>}
               </div>
               <input 
                 type="password"
@@ -127,24 +172,35 @@ export const LoginPage: React.FC = () => {
                   </select>
                 </div>
             )}
+            </>
+            )}
 
             <button 
               type="submit"
               disabled={isSubmitting}
               className="w-full bg-neon-blue hover:bg-white text-black font-bold py-3 rounded-xl shadow-[0_0_20px_rgba(0,243,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group duration-300"
             >
-              {isSubmitting ? 'Processing...' : (isLogin ? 'Sign In' : 'Initialize Account')}
+              {isSubmitting ? 'Processing...' : isRecoveringPassword ? 'Update Password' : isForgotPassword ? 'Send Reset Link' : isLogin ? 'Sign In' : 'Initialize Account'}
             </button>
           </form>
 
           <div className="mt-8 pt-8 border-t border-white/10 text-center text-sm text-slate-400">
-            {isLogin ? "Don't have an access ID? " : "Already have an account? "}
-            <button 
-                onClick={() => setIsLogin(!isLogin)} 
-                className="text-neon-blue font-bold hover:text-white transition-colors hover:underline"
-            >
-                {isLogin ? 'Sign Up' : 'Log In'}
-            </button>
+            {isRecoveringPassword ? (
+              <button type="button" onClick={() => (cancelRecovery as any)()} className="text-neon-blue font-bold hover:text-white transition-colors hover:underline">Cancel Reset</button>
+            ) : isForgotPassword ? (
+              <button type="button" onClick={() => setIsForgotPassword(false)} className="text-neon-blue font-bold hover:text-white transition-colors hover:underline">Back to Login</button>
+            ) : (
+              <>
+                {isLogin ? "Don't have an access ID? " : "Already have an account? "}
+                <button 
+                    type="button"
+                    onClick={() => { setIsLogin(!isLogin); setError(null); setSuccessMsg(null); }} 
+                    className="text-neon-blue font-bold hover:text-white transition-colors hover:underline"
+                >
+                    {isLogin ? 'Sign Up' : 'Log In'}
+                </button>
+              </>
+            )}
           </div>
         </div>
         

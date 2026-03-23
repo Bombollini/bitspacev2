@@ -1,5 +1,5 @@
 import { supabase } from "./supabaseClient";
-import { User, Project, Task, Activity, CreateProjectDto, UserRole, ProjectStatus, TaskStatus, TaskPriority, Comment, Milestone, CreateMilestoneDto, UpdateMilestoneDto } from "../types";
+import { User, Project, Task, Activity, CreateProjectDto, UserRole, ProjectStatus, TaskStatus, TaskPriority, Comment, Milestone, CreateMilestoneDto, UpdateMilestoneDto, Meeting, CreateMeetingDto, UpdateMeetingDto } from "../types";
 
 let cachedRole: { userId: string; role: UserRole; ts: number } | null = null;
 
@@ -64,6 +64,7 @@ const mapTask = (data: any): Task => ({
       }
     : undefined,
   dueDate: data.due_date,
+  attachmentUrl: data.attachment_url,
   createdAt: data.created_at,
   updatedAt: data.updated_at,
 });
@@ -357,6 +358,7 @@ export const api = {
           priority: data.priority || "MEDIUM",
           assignee_id: data.assigneeId,
           due_date: data.dueDate,
+          attachment_url: data.attachmentUrl,
         })
         .select(
           `
@@ -386,6 +388,7 @@ export const api = {
       if (data.status) updates.status = data.status;
       if (data.assigneeId) updates.assignee_id = data.assigneeId;
       if (data.milestoneId !== undefined) updates.milestone_id = data.milestoneId;
+      if (data.attachmentUrl !== undefined) updates.attachment_url = data.attachmentUrl;
 
       const { data: task, error } = await supabase
         .from("tasks")
@@ -450,6 +453,25 @@ export const api = {
           metadata: { title: taskData.title },
         });
       }
+    },
+    uploadAttachment: async (file: File) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage.from("task_attachments").upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("task_attachments").getPublicUrl(fileName);
+
+      return publicUrl;
     },
     comments: async (taskId: string): Promise<Comment[]> => {
       const { data, error } = await supabase
@@ -625,6 +647,108 @@ export const api = {
         createdAt: data.created_at,
       };
     },
+  },
+  meetings: {
+    list: async (projectId?: string): Promise<Meeting[]> => {
+      let query = supabase.from("meetings").select("*").order("meeting_date", { ascending: false });
+      if (projectId) {
+        query = query.eq("project_id", projectId);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      
+      return data.map((m: any) => ({
+        id: m.id,
+        projectId: m.project_id,
+        title: m.title,
+        meetingDate: m.meeting_date,
+        meetingLink: m.meeting_link,
+        retrospective: m.retrospective,
+        createdBy: m.created_by,
+        createdAt: m.created_at,
+        updatedAt: m.updated_at,
+      }));
+    },
+    get: async (id: string): Promise<Meeting> => {
+      const { data, error } = await supabase.from("meetings").select("*").eq("id", id).single();
+      if (error) throw error;
+      return {
+        id: data.id,
+        projectId: data.project_id,
+        title: data.title,
+        meetingDate: data.meeting_date,
+        meetingLink: data.meeting_link,
+        retrospective: data.retrospective,
+        createdBy: data.created_by,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      };
+    },
+    create: async (data: CreateMeetingDto): Promise<Meeting> => {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+      
+      const { data: meeting, error } = await supabase
+        .from("meetings")
+        .insert({
+          project_id: data.projectId,
+          title: data.title,
+          meeting_date: data.meetingDate,
+          meeting_link: data.meetingLink,
+          retrospective: data.retrospective,
+          created_by: userId
+        })
+        .select()
+        .single();
+        
+      if (error) throw error;
+      
+      return {
+        id: meeting.id,
+        projectId: meeting.project_id,
+        title: meeting.title,
+        meetingDate: meeting.meeting_date,
+        meetingLink: meeting.meeting_link,
+        retrospective: meeting.retrospective,
+        createdBy: meeting.created_by,
+        createdAt: meeting.created_at,
+        updatedAt: meeting.updated_at,
+      };
+    },
+    update: async (id: string, data: UpdateMeetingDto): Promise<Meeting> => {
+      const updates: any = {};
+      if (data.title) updates.title = data.title;
+      if (data.meetingDate) updates.meeting_date = data.meetingDate;
+      if (data.meetingLink !== undefined) updates.meeting_link = data.meetingLink;
+      if (data.retrospective !== undefined) updates.retrospective = data.retrospective;
+      updates.updated_at = new Date().toISOString();
+
+      const { data: meeting, error } = await supabase.from("meetings").update(updates).eq("id", id).select().single();
+      if (error) throw error;
+      
+      return {
+        id: meeting.id,
+        projectId: meeting.project_id,
+        title: meeting.title,
+        meetingDate: meeting.meeting_date,
+        meetingLink: meeting.meeting_link,
+        retrospective: meeting.retrospective,
+        createdBy: meeting.created_by,
+        createdAt: meeting.created_at,
+        updatedAt: meeting.updated_at,
+      };
+    },
+    delete: async (id: string) => {
+      const { error } = await supabase.from("meetings").delete().eq("id", id);
+      if (error) throw error;
+    },
+    sendEmail: async (data: { to: string[]; subject: string; html: string }) => {
+      const { data: response, error } = await supabase.functions.invoke('send-meeting-email', {
+        body: data
+      });
+      if (error) throw error;
+      return response;
+    }
   },
   search: {
     global: async (query: string): Promise<{ projects: Project[]; tasks: Task[] }> => {

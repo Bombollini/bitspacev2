@@ -4,10 +4,10 @@ import { Project, Task, Member, Activity, User, Milestone } from '../types';
 import logo from '../logo.png';
 
 // Standard Colors
-const COLOR_PRIMARY = [63, 81, 181]; // Indigo
-const COLOR_TEXT = [50, 50, 50];
-const COLOR_HEADER_BG = [220, 240, 255]; // Light Blue
-const COLOR_HEADER_TEXT = [0, 0, 0];
+const COLOR_PRIMARY: [number, number, number] = [63, 81, 181]; // Indigo
+const COLOR_TEXT: [number, number, number] = [50, 50, 50];
+const COLOR_HEADER_BG: [number, number, number] = [220, 240, 255]; // Light Blue
+const COLOR_HEADER_TEXT: [number, number, number] = [0, 0, 0];
 
 const reportTableTheme = {
     theme: 'grid' as const,
@@ -282,4 +282,28 @@ export const generateMilestoneReportPDF = async (project: Project, milestones: M
 
     addFooter(doc, (doc as any).lastAutoTable.finalY);
     savePDF(doc, `Laporan_Milestone_${project.name}_${new Date().getTime()}`);
+};
+
+export const generateAIReportPDF = async (project: Project, aiText: string) => {
+    const doc = new jsPDF();
+    const startY = await generateReportHeader(doc, 'AI Project Status Report', project);
+
+    doc.setFontSize(10);
+    doc.setTextColor(40, 40, 40);
+    doc.setFont('helvetica', 'normal');
+    
+    const lines = doc.splitTextToSize(aiText, 180);
+    let cursorY = startY + 10;
+    
+    for (let i = 0; i < lines.length; i++) {
+        if (cursorY > 280) {
+            doc.addPage();
+            cursorY = 20;
+        }
+        doc.text(lines[i], 14, cursorY);
+        cursorY += 5;
+    }
+
+    addFooter(doc, cursorY < 280 ? cursorY : 280);
+    savePDF(doc, `AI_Status_Report_${project.name.replace(/\s+/g, '_')}`);
 };
