@@ -53,11 +53,52 @@ export interface Project {
   createdAt: string; // Mapped from created_at
   updatedAt: string; // Mapped from updated_at
   stats?: ProjectStats; // Derived field
+  // AI Project Generator fields
+  projectGoal?: string; // Mapped from project_goal
+  teamSize?: number; // Mapped from team_size
+  deadline?: string; // Due date for the project
+  generatedByAI?: boolean; // Mapped from generated_by_ai
+  projectContext?: string; // Additional context for AI
 }
 
 export interface CreateProjectDto {
   name: string;
   description?: string;
+  projectGoal?: string;
+  teamSize?: number;
+  deadline?: string;
+  projectContext?: string;
+}
+
+export interface AIProjectGeneratorRequest {
+  prompt: string; // User's project description/goal
+  teamSize: number;
+  deadline: string; // ISO date
+}
+
+export interface AIGeneratedProject {
+  name: string;
+  description: string;
+  projectGoal: string;
+  teamSize: number;
+  deadline: string;
+  milestones: AIGeneratedMilestone[];
+  tasks: AIGeneratedTask[];
+}
+
+export interface AIGeneratedMilestone {
+  title: string;
+  description?: string;
+  dueDate?: string; // Relative to project deadline
+  order: number;
+}
+
+export interface AIGeneratedTask {
+  title: string;
+  description?: string;
+  priority: TaskPriority;
+  estimatedDays?: number;
+  milestoneIndex?: number; // Reference to milestone
 }
 
 export interface UpdateProjectDto {
@@ -81,6 +122,7 @@ export interface Task {
   attachmentUrl?: string; // Mapped from attachment_url
   createdAt: string; // Mapped from created_at
   updatedAt: string; // Mapped from updated_at
+  parentTaskId?: string | null; // Mapped from parent_task_id
 }
 
 export interface CreateTaskDto {
@@ -93,6 +135,7 @@ export interface CreateTaskDto {
   projectId: string;
   milestoneId?: string;
   attachmentUrl?: string;
+  parentTaskId?: string;
 }
 
 
@@ -131,6 +174,7 @@ export interface UpdateTaskDto {
   dueDate?: string;
   milestoneId?: string | null;
   attachmentUrl?: string | null;
+  parentTaskId?: string | null;
 }
 
 
@@ -175,6 +219,16 @@ export interface Meeting {
   meetingDate: string; // Mapped from meeting_date
   meetingLink?: string; // Mapped from meeting_link
   retrospective?: string;
+  meetingNotes?: string;
+  meetingSummary?: {
+    summary: string;
+    keyDecisions: string[];
+    actionItems: {
+      taskTitle: string;
+      description: string;
+      suggestedAssigneeId?: string;
+    }[];
+  };
   createdBy?: string; // Mapped from created_by
   createdAt: string; // Mapped from created_at
   updatedAt: string; // Mapped from updated_at
@@ -193,4 +247,25 @@ export interface UpdateMeetingDto {
   meetingDate?: string;
   meetingLink?: string;
   retrospective?: string;
+  meetingNotes?: string;
+  meetingSummary?: {
+    summary: string;
+    keyDecisions: string[];
+    actionItems: {
+      taskTitle: string;
+      description: string;
+      suggestedAssigneeId?: string;
+    }[];
+  };
+}
+
+export interface ProjectInsight {
+  id: string;
+  projectId: string; // Mapped from project_id
+  healthScore: number; // Mapped from health_score
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'; // Mapped from risk_level
+  recommendations: string[];
+  delayPrediction?: string; // Mapped from delay_prediction
+  bottlenecks: string[];
+  createdAt: string; // Mapped from created_at
 }

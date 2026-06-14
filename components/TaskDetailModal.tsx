@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Task, TaskStatus, User, UserRole, Comment } from '../types';
 import { Badge } from './Badge';
-import { X, Calendar, User as UserIcon, Trash2, Edit2, Check, AlertCircle, Sparkles, Loader2, Image as ImageIcon, Upload, MessageSquare, Send } from 'lucide-react';
+import { X, Calendar, User as UserIcon, Trash2, Edit2, Check, AlertCircle, Sparkles, Loader2, Image as ImageIcon, Upload, MessageSquare, Send, ListTodo } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
+import { AIService } from '../services/ai.service';
 import { api } from '../services/apiClient';
 
 interface TaskDetailModalProps {
@@ -35,6 +36,12 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const [newComment, setNewComment] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
+
+  const [subtasks, setSubtasks] = useState<Task[]>([]);
+  const [isLoadingSubtasks, setIsLoadingSubtasks] = useState(false);
+  const [isGeneratingSubtasks, setIsGeneratingSubtasks] = useState(false);
+  const [generatedBreakdown, setGeneratedBreakdown] = useState<{ subtasks: { title: string, description: string, estimatedDays: number }[], acceptanceCriteria: string[] } | null>(null);
+  const [isSavingSubtasks, setIsSavingSubtasks] = useState(false);
 
   const handlePolishText = async () => {
     if (!editedTask.description) return;
@@ -75,6 +82,13 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         .then(setComments)
         .catch(err => console.error("Failed to load comments", err))
         .finally(() => setIsLoadingComments(false));
+
+      // Fetch subtasks
+      setIsLoadingSubtasks(true);
+      api.tasks.list(task.projectId, { parentTaskId: task.id })
+        .then(setSubtasks)
+        .catch(err => console.error("Failed to load subtasks", err))
+        .finally(() => setIsLoadingSubtasks(false));
     }
   }, [task]);
 
@@ -91,6 +105,57 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       alert("Failed to post comment: " + err.message);
     } finally {
       setIsSubmittingComment(false);
+    }
+  };
+
+  const handleGenerateSubtasks = async () => {
+    if (!task) return;
+    setIsGeneratingSubtasks(true);
+    setGeneratedBreakdown(null);
+    try {
+      const breakdown = await AIService.generateTaskBreakdown(
+        task.title,
+        editedTask.description || task.description || '',
+        ''
+      );
+      setGeneratedBreakdown(breakdown);
+    } catch (err: any) {
+      alert("Failed to generate subtasks: " + err.message);
+    } finally {
+      setIsGeneratingSubtasks(false);
+    }
+  };
+
+  const handleSaveSubtasks = async () => {
+    if (!task || !generatedBreakdown) return;
+    setIsSavingSubtasks(true);
+    try {
+      const newSubtasks = [];
+      for (const st of generatedBreakdown.subtasks) {
+        const created = await api.tasks.create({
+          projectId: task.projectId,
+          milestoneId: task.milestoneId || undefined,
+          parentTaskId: task.id,
+          title: st.title,
+          description: st.description,
+          status: TaskStatus.TODO,
+          priority: task.priority,
+        });
+        newSubtasks.push(created);
+      }
+      setSubtasks([...subtasks, ...newSubtasks]);
+      
+      if (generatedBreakdown.acceptanceCriteria.length > 0) {
+        const newDesc = (editedTask.description || task.description || '') + '\n\n### Acceptance Criteria\n' + generatedBreakdown.acceptanceCriteria.map((c: string) => `- [ ] ${c}`).join('\n');
+        setEditedTask({ ...editedTask, description: newDesc });
+        if (!isEditing) setIsEditing(true); // Switch to edit mode so they see the criteria added
+      }
+      
+      setGeneratedBreakdown(null);
+    } catch (err: any) {
+      alert("Failed to save subtasks: " + err.message);
+    } finally {
+      setIsSavingSubtasks(false);
     }
   };
 
@@ -244,6 +309,90 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                             </div>
                         )}
                     </div>
+
+                    {/* Subtasks Section */}
+                    {!isEditing && (
+                        <div className="pt-4 border-t border-white/5 mt-4">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                    <ListTodo size={16} className="text-neon-purple" />
+                                    <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">Subtasks</h3>
+                                </div>
+                                <button 
+                                    type="button"
+                                    onClick={handleGenerateSubtasks}
+                                    disabled={isGeneratingSubtasks}
+                                    className="flex items-center gap-1.5 text-xs font-bold text-neon-purple hover:text-white bg-neon-purple/10 hover:bg-neon-purple/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 border border-neon-purple/20 shadow-[0_0_10px_rgba(188,19,254,0.1)]"
+                                >
+                                    {isGeneratingSubtasks ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                                    AI Breakdown
+                                </button>
+                            </div>
+
+                            {generatedBreakdown && (
+                                <div className="mb-4 p-4 bg-neon-purple/5 border border-neon-purple/20 rounded-xl space-y-4 animate-fade-in">
+                                    <h4 className="text-sm font-bold text-white mb-2">Generated Breakdown Preview:</h4>
+                                    <div className="space-y-2">
+                                        {generatedBreakdown.subtasks.map((st, i) => (
+                                            <div key={i} className="p-3 bg-black/40 border border-white/10 rounded-lg">
+                                                <div className="flex justify-between">
+                                                    <span className="text-sm font-medium text-white">{st.title}</span>
+                                                    <span className="text-xs text-slate-400 bg-white/5 px-2 py-1 rounded">{st.estimatedDays} days</span>
+                                                </div>
+                                                <p className="text-xs text-slate-400 mt-1">{st.description}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="flex gap-2 pt-2">
+                                        <button 
+                                            onClick={() => setGeneratedBreakdown(null)}
+                                            className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex-1"
+                                        >
+                                            Discard
+                                        </button>
+                                        <button 
+                                            onClick={handleSaveSubtasks}
+                                            disabled={isSavingSubtasks}
+                                            className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-black bg-neon-purple hover:bg-white rounded-lg transition-all disabled:opacity-50 flex-1 shadow-[0_0_10px_rgba(188,19,254,0.3)] hover:shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+                                        >
+                                            {isSavingSubtasks ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                                            Confirm & Save
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="space-y-2">
+                                {isLoadingSubtasks ? (
+                                    <div className="flex justify-center py-4"><Loader2 size={20} className="text-neon-purple animate-spin" /></div>
+                                ) : subtasks.length === 0 && !generatedBreakdown ? (
+                                    <div className="text-sm text-slate-500 italic px-2 py-3 border border-dashed border-white/5 rounded-xl text-center">
+                                        No subtasks. Try generating some with AI!
+                                    </div>
+                                ) : (
+                                    subtasks.map(st => (
+                                        <div key={st.id} className="flex items-start gap-3 p-3 bg-black/20 border border-white/5 rounded-xl hover:border-white/10 transition-colors">
+                                            <button 
+                                                className={`w-5 h-5 rounded flex items-center justify-center mt-0.5 flex-shrink-0 transition-colors ${st.status === TaskStatus.DONE ? 'bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-black/40 border border-white/20 hover:border-neon-blue'}`}
+                                                onClick={() => {
+                                                    const newStatus = st.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
+                                                    const updatedSubtasks = subtasks.map(s => s.id === st.id ? {...s, status: newStatus} : s);
+                                                    setSubtasks(updatedSubtasks);
+                                                    onUpdate(st.id, { status: newStatus });
+                                                }}
+                                            >
+                                                {st.status === TaskStatus.DONE && <Check size={14} />}
+                                            </button>
+                                            <div className="flex-1">
+                                                <p className={`text-sm font-medium ${st.status === TaskStatus.DONE ? 'text-slate-500 line-through' : 'text-slate-300'}`}>{st.title}</p>
+                                                {st.description && <p className={`text-xs mt-1 ${st.status === TaskStatus.DONE ? 'text-slate-600' : 'text-slate-500'}`}>{st.description}</p>}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Comments Section */}
                     {!isEditing && (

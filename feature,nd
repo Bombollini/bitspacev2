@@ -1,0 +1,216 @@
+# Bitspace AI Co-Pilot — TODO LIST
+
+# 1. AI Project Generator ⭐ (MAIN FEATURE)
+
+## Database
+
+* [ ] Tambah field `project_goal`
+* [ ] Tambah field `team_size`
+* [ ] Tambah field `deadline`
+* [ ] Tambah field `generated_by_ai`
+* [ ] Tambah field `project_context`
+
+## Backend / AI Logic
+
+* [ ] Buat prompt template project generation
+* [ ] Define JSON output schema
+* [ ] Implement AI API request
+* [ ] Validate JSON response
+* [ ] Handle malformed response
+* [ ] Retry generation mechanism
+
+## UI
+
+* [ ] Buat modal **Create with AI**
+* [ ] Input prompt project
+* [ ] Input jumlah tim
+* [ ] Input deadline
+* [ ] Generate loading state
+* [ ] Preview hasil AI
+* [ ] Button **Create Project**
+
+## Integration
+
+* [ ] Auto create project
+* [ ] Auto create milestones
+* [ ] Auto create tasks
+* [ ] Auto assign priority
+* [ ] Redirect ke detail project
+
+## Polish
+
+* [ ] Add regenerate option
+* [ ] Improve prompt quality
+* [ ] Error handling
+
+---
+
+# 2. AI Task Breakdown ⭐
+
+## Database
+
+* [ ] Tambah `parent_task_id`
+* [ ] Tambah table subtasks (optional)
+
+## Backend / AI Logic
+
+* [ ] Buat task breakdown prompt
+* [ ] Generate subtasks
+* [ ] Generate acceptance criteria
+* [ ] Generate estimated effort
+
+## UI
+
+* [ ] Tambah button:
+
+  * [ ] `✨ Generate Subtasks`
+* [ ] Loading state
+* [ ] Preview subtasks
+* [ ] Confirm generate
+
+## Integration
+
+* [ ] Save subtasks ke database
+* [ ] Render checklist subtask
+* [ ] Update task progress
+
+---
+
+# 3. AI Smart Project Monitoring ⭐
+
+## Database
+
+* [ ] Buat table `ai_project_insights`
+* [ ] Simpan health score
+* [ ] Simpan recommendation
+* [ ] Simpan risk level
+
+## Logic
+
+* [ ] Calculate overdue %
+* [ ] Calculate workload balance
+* [ ] Calculate completion rate
+* [ ] Calculate milestone progress
+* [ ] Generate health score
+
+## AI Analysis
+
+* [ ] Generate project insights
+* [ ] Generate delay prediction
+* [ ] Generate recommendation
+* [ ] Detect bottleneck
+
+## UI
+
+* [ ] Dashboard health card
+* [ ] Health score widget
+* [ ] Risk badge
+* [ ] Recommendation section
+
+---
+
+# 4. AI Meeting Intelligence ⭐
+
+## Database
+
+* [ ] Tambah `meeting_notes`
+* [ ] Tambah `meeting_summary`
+
+## Backend / AI Logic
+
+* [ ] Meeting summary prompt
+* [ ] Extract key decisions
+* [ ] Extract action items
+* [ ] Generate suggested tasks
+
+## UI
+
+* [ ] Input meeting notes
+* [ ] Button:
+
+  * [ ] `✨ Summarize Meeting`
+* [ ] Summary preview
+* [ ] Action item section
+
+## Integration
+
+* [ ] Auto create task from action item
+* [ ] Suggest assignee
+
+---
+
+# 5. AI Sprint Report ⭐
+
+## Backend / AI Logic
+
+* [x] Read project progress
+* [x] Read completed task
+* [x] Read overdue task
+* [x] Generate sprint summary
+* [x] Generate recommendation
+
+## UI
+
+* [x] Button:
+
+  * [x] `✨ Generate Report`
+* [x] Report preview
+* [x] Export PDF button
+
+## Integration
+
+* [x] Connect PDF generator
+* [x] Download report
+
+---
+
+# 6. AI Workspace Assistant (Optional)
+
+## Backend
+
+* [x] Build project context retriever
+* [x] Create AI chat prompt memory
+* [x] Query project data
+
+## UI
+
+* [x] Chat panel
+* [x] AI assistant sidebar
+* [x] Suggested prompt
+
+## Features
+
+* [x] Ask project status
+* [x] Ask blocker
+* [x] Ask overdue tasks
+* [x] Ask recommendation
+
+---
+
+# Final Polish
+
+* [x] Improve prompt engineering
+* [x] Add caching
+* [x] Add AI history
+* [x] Add regenerate option
+* [x] Better loading UX
+* [x] Error fallback response
+
+---
+
+# MVP (Minimum for Dosen)
+
+### MUST HAVE
+
+* [x] AI Project Generator
+* [x] AI Task Breakdown
+* [x] AI Smart Monitoring
+
+### BONUS
+
+* [x] AI Meeting Intelligence
+
+### OPTIONAL
+
+* [x] AI Sprint Report
+* [x] AI Workspace Assistant

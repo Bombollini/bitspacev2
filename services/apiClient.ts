@@ -1,5 +1,5 @@
 import { supabase } from "./supabaseClient";
-import { User, Project, Task, Activity, CreateProjectDto, UserRole, ProjectStatus, TaskStatus, TaskPriority, Comment, Milestone, CreateMilestoneDto, UpdateMilestoneDto, Meeting, CreateMeetingDto, UpdateMeetingDto } from "../types";
+import { User, Project, Task, Activity, CreateProjectDto, UserRole, ProjectStatus, TaskStatus, TaskPriority, Comment, Milestone, CreateMilestoneDto, UpdateMilestoneDto, Meeting, CreateMeetingDto, UpdateMeetingDto, ProjectInsight } from "../types";
 
 let cachedRole: { userId: string; role: UserRole; ts: number } | null = null;
 
@@ -37,6 +37,11 @@ const mapProject = (data: any): Project => ({
   status: data.status as ProjectStatus,
   createdAt: data.created_at,
   updatedAt: data.updated_at,
+  projectGoal: data.project_goal,
+  teamSize: data.team_size,
+  deadline: data.deadline,
+  generatedByAI: data.generated_by_ai,
+  projectContext: data.project_context,
   stats: {
     totalTasks: 0, // Needs aggregation
     completedTasks: 0, // Needs aggregation
@@ -67,6 +72,7 @@ const mapTask = (data: any): Task => ({
   attachmentUrl: data.attachment_url,
   createdAt: data.created_at,
   updatedAt: data.updated_at,
+  parentTaskId: data.parent_task_id,
 });
 
 const mapComment = (data: any): Comment => ({
@@ -293,6 +299,11 @@ export const api = {
           name: data.name,
           description: data.description,
           owner_id: user.id,
+          project_goal: data.projectGoal,
+          team_size: data.teamSize,
+          deadline: data.deadline,
+          generated_by_ai: data.projectGoal ? true : undefined,
+          project_context: data.projectContext,
         })
         .select()
         .single();
@@ -336,6 +347,11 @@ export const api = {
       if (filters.status) {
         query = query.eq("status", filters.status);
       }
+      if (filters.parentTaskId === null) {
+        query = query.is("parent_task_id", null);
+      } else if (filters.parentTaskId) {
+        query = query.eq("parent_task_id", filters.parentTaskId);
+      }
 
       const { data, error } = await query;
       if (error) throw error;
@@ -359,6 +375,7 @@ export const api = {
           assignee_id: data.assigneeId,
           due_date: data.dueDate,
           attachment_url: data.attachmentUrl,
+          parent_task_id: data.parentTaskId,
         })
         .select(
           `
@@ -389,6 +406,7 @@ export const api = {
       if (data.assigneeId) updates.assignee_id = data.assigneeId;
       if (data.milestoneId !== undefined) updates.milestone_id = data.milestoneId;
       if (data.attachmentUrl !== undefined) updates.attachment_url = data.attachmentUrl;
+      if (data.parentTaskId !== undefined) updates.parent_task_id = data.parentTaskId;
 
       const { data: task, error } = await supabase
         .from("tasks")
@@ -664,6 +682,8 @@ export const api = {
         meetingDate: m.meeting_date,
         meetingLink: m.meeting_link,
         retrospective: m.retrospective,
+        meetingNotes: m.meeting_notes,
+        meetingSummary: m.meeting_summary,
         createdBy: m.created_by,
         createdAt: m.created_at,
         updatedAt: m.updated_at,
@@ -679,6 +699,8 @@ export const api = {
         meetingDate: data.meeting_date,
         meetingLink: data.meeting_link,
         retrospective: data.retrospective,
+        meetingNotes: data.meeting_notes,
+        meetingSummary: data.meeting_summary,
         createdBy: data.created_by,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
@@ -710,6 +732,8 @@ export const api = {
         meetingDate: meeting.meeting_date,
         meetingLink: meeting.meeting_link,
         retrospective: meeting.retrospective,
+        meetingNotes: meeting.meeting_notes,
+        meetingSummary: meeting.meeting_summary,
         createdBy: meeting.created_by,
         createdAt: meeting.created_at,
         updatedAt: meeting.updated_at,
@@ -721,6 +745,8 @@ export const api = {
       if (data.meetingDate) updates.meeting_date = data.meetingDate;
       if (data.meetingLink !== undefined) updates.meeting_link = data.meetingLink;
       if (data.retrospective !== undefined) updates.retrospective = data.retrospective;
+      if (data.meetingNotes !== undefined) updates.meeting_notes = data.meetingNotes;
+      if (data.meetingSummary !== undefined) updates.meeting_summary = data.meetingSummary;
       updates.updated_at = new Date().toISOString();
 
       const { data: meeting, error } = await supabase.from("meetings").update(updates).eq("id", id).select().single();
@@ -733,6 +759,8 @@ export const api = {
         meetingDate: meeting.meeting_date,
         meetingLink: meeting.meeting_link,
         retrospective: meeting.retrospective,
+        meetingNotes: meeting.meeting_notes,
+        meetingSummary: meeting.meeting_summary,
         createdBy: meeting.created_by,
         createdAt: meeting.created_at,
         updatedAt: meeting.updated_at,
@@ -748,6 +776,54 @@ export const api = {
       });
       if (error) throw error;
       return response;
+    }
+  },
+  insights: {
+    getLatest: async (projectId: string): Promise<ProjectInsight | null> => {
+      const { data, error } = await supabase
+        .from('ai_project_insights')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      if (!data) return null;
+      return {
+        id: data.id,
+        projectId: data.project_id,
+        healthScore: data.health_score,
+        riskLevel: data.risk_level,
+        recommendations: data.recommendations,
+        delayPrediction: data.delay_prediction,
+        bottlenecks: data.bottlenecks,
+        createdAt: data.created_at,
+      };
+    },
+    save: async (projectId: string, insightData: Omit<ProjectInsight, 'id' | 'projectId' | 'createdAt'>): Promise<ProjectInsight> => {
+      const { data, error } = await supabase
+        .from('ai_project_insights')
+        .insert({
+          project_id: projectId,
+          health_score: insightData.healthScore,
+          risk_level: insightData.riskLevel,
+          recommendations: insightData.recommendations,
+          delay_prediction: insightData.delayPrediction,
+          bottlenecks: insightData.bottlenecks
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return {
+        id: data.id,
+        projectId: data.project_id,
+        healthScore: data.health_score,
+        riskLevel: data.risk_level,
+        recommendations: data.recommendations,
+        delayPrediction: data.delay_prediction,
+        bottlenecks: data.bottlenecks,
+        createdAt: data.created_at,
+      };
     }
   },
   search: {

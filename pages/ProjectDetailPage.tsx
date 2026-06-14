@@ -10,11 +10,13 @@ import { TaskModal } from "../components/TaskModal";
 import { MilestoneList } from "../components/MilestoneList";
 import { NewProjectModal } from "../components/NewProjectModal";
 import { useAuth } from "../services/authStore";
-import { Plus, Users, Activity as ActivityIcon, LayoutGrid, Info, Search, Filter, UserPlus, FileText, ChevronDown, Download, Trash2, Edit2, Sparkles, Loader2, X } from "lucide-react";
+import { Plus, Users, Activity as ActivityIcon, LayoutGrid, Info, Search, Filter, UserPlus, FileText, ChevronDown, Download, Trash2, Edit2, Sparkles, Loader2, X, MessageSquare, Briefcase, List, SortDesc, Calendar, RefreshCw } from "lucide-react";
 import { generateProjectSummaryPDF, generateTaskListPDF, generateMemberWorkloadPDF, generateActivityLogPDF, generateMilestoneReportPDF, generateAIReportPDF } from "../utils/pdfGenerator";
-
 import { InviteMemberModal } from "../components/InviteMemberModal";
 import { TaskDetailModal } from "../components/TaskDetailModal";
+import { AIProjectInsightsPanel } from "../components/AIProjectInsightsPanel";
+import { AIAssistantSidebar } from "../components/AIAssistantSidebar";
+import { AIService } from "../services/ai.service";
 
 export const ProjectDetailPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -24,7 +26,7 @@ export const ProjectDetailPage: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<User[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [activeTab, setActiveTab] = useState<"tasks" | "overview" | "members" | "activity" | "milestones" | "ai_report">("tasks");
+  const [activeTab, setActiveTab] = useState<"tasks" | "overview" | "members" | "activity" | "milestones" | "ai_report" | "insights">("tasks");
 
   // Modals
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -32,6 +34,7 @@ export const ProjectDetailPage: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false); // Export Dropdown State
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -40,18 +43,16 @@ export const ProjectDetailPage: React.FC = () => {
   const [aiReport, setAiReport] = useState<string | null>(null);
 
   const handleGenerateStatusReport = async () => {
+    if (!project) return;
     setIsGeneratingReport(true);
     setAiReport(null);
     try {
-      const { data, error } = await supabase.functions.invoke('gemini-ai', {
-        body: { 
-          action: 'summarize_project', 
-          data: { tasks, activities: activities.slice(0, 50) }
-        }
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      setAiReport(data?.result || "Failed to generate report.");
+      const reportContent = await AIService.generateSprintReport(
+        { name: project.name, description: project.description, status: project.status },
+        tasks.map(t => ({ title: t.title, status: t.status, dueDate: t.dueDate })),
+        activities.map(a => ({ action: a.action, createdAt: a.createdAt, user: { name: a.user?.name || '' } }))
+      );
+      setAiReport(reportContent);
       setActiveTab("ai_report"); // Auto-switch to ai_report to show the report
     } catch (err) {
       console.error(err);
@@ -436,17 +437,25 @@ export const ProjectDetailPage: React.FC = () => {
               <span className="hidden sm:inline">New Task</span>
               <span className="sm:hidden">New</span>
             </button>
+            <button
+              onClick={() => setIsAIAssistantOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-neon-purple/20 text-neon-purple border border-neon-purple/50 font-bold rounded-xl shadow-[0_0_15px_rgba(188,19,254,0.2)] hover:bg-neon-purple/30 hover:shadow-[0_0_20px_rgba(188,19,254,0.4)] transition-all active:scale-95 group"
+            >
+              <MessageSquare size={18} className="group-hover:scale-110 transition-transform duration-300" />
+              <span className="hidden sm:inline">AI Assistant</span>
+              <span className="sm:hidden">AI</span>
+            </button>
           </div>
         </div>
 
         <div className="flex bg-black/20 p-1 rounded-xl border border-white/10 w-fit backdrop-blur-sm mx-auto lg:mx-0 overflow-x-auto">
-          {["milestones", "tasks", "overview", "members", "activity", "ai_report"].map((tab) => (
+          {["milestones", "tasks", "overview", "members", "activity", "ai_report", "insights"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
               className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${activeTab === tab ? "bg-neon-blue/10 text-neon-blue shadow-[0_0_10px_rgba(0,243,255,0.2)]" : "text-slate-500 hover:text-white hover:bg-white/5"}`}
             >
-              {tab === "ai_report" ? "AI Report" : tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab === "ai_report" ? "AI Report" : tab === "insights" ? "AI Health" : tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
         </div>
@@ -671,12 +680,22 @@ export const ProjectDetailPage: React.FC = () => {
                 </div>
                 
                 {aiReport && (
-                    <button 
-                        onClick={() => generateAIReportPDF(project, aiReport)}
-                        className="flex items-center gap-2 px-6 py-3 bg-neon-purple/20 text-neon-purple hover:bg-neon-purple/30 border border-neon-purple/50 transition-all font-bold text-sm rounded-xl"
-                    >
-                        <Download size={18} /> Download PDF
-                    </button>
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={handleGenerateStatusReport}
+                            disabled={isGeneratingReport}
+                            className="flex items-center gap-2 px-6 py-3 bg-neon-blue/20 text-neon-blue hover:bg-neon-blue/30 border border-neon-blue/50 transition-all font-bold text-sm rounded-xl disabled:opacity-50"
+                        >
+                            {isGeneratingReport ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />} 
+                            Regenerate
+                        </button>
+                        <button 
+                            onClick={() => generateAIReportPDF(project, aiReport)}
+                            className="flex items-center gap-2 px-6 py-3 bg-neon-purple/20 text-neon-purple hover:bg-neon-purple/30 border border-neon-purple/50 transition-all font-bold text-sm rounded-xl"
+                        >
+                            <Download size={18} /> Download PDF
+                        </button>
+                    </div>
                 )}
             </div>
             
@@ -701,6 +720,12 @@ export const ProjectDetailPage: React.FC = () => {
         </div>
       )}
 
+      {activeTab === "insights" && (
+        <div className="max-w-5xl mx-auto animate-fade-in">
+          <AIProjectInsightsPanel project={project!} tasks={tasks} />
+        </div>
+      )}
+
       <TaskModal isOpen={isTaskModalOpen} onClose={() => setIsTaskModalOpen(false)} onSubmit={handleCreateTask} members={members} projectId={projectId!} />
 
       {/* Edit Project Modal */}
@@ -709,6 +734,16 @@ export const ProjectDetailPage: React.FC = () => {
       <TaskDetailModal isOpen={!!selectedTask} onClose={() => setSelectedTask(null)} task={selectedTask} onUpdate={handleTaskUpdate} onDelete={handleTaskDelete} members={members} currentUser={currentUser} />
 
       <InviteMemberModal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} projectId={projectId!} currentMembers={members} onInvite={handleInviteSuccess} />
+
+      {project && (
+        <AIAssistantSidebar 
+          isOpen={isAIAssistantOpen} 
+          onClose={() => setIsAIAssistantOpen(false)} 
+          project={project} 
+          tasks={tasks} 
+          members={members} 
+        />
+      )}
     </Layout>
   );
 };

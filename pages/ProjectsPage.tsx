@@ -4,8 +4,9 @@ import { api } from "../services/apiClient";
 import { Project, UserRole, CreateProjectDto } from "../types";
 import { useAuth } from "../services/authStore";
 import { Layout } from "../components/Layout";
-import { Briefcase, CheckCircle2, Clock, ChevronRight, Plus, FileText } from "lucide-react";
+import { Briefcase, CheckCircle2, Clock, ChevronRight, Plus, FileText, Sparkles } from "lucide-react";
 import { NewProjectModal } from "../components/NewProjectModal";
+import { CreateProjectWithAIModal } from "../components/CreateProjectWithAIModal";
 import { generateAllProjectsReportPDF } from "../utils/pdfGenerator";
 import { seedDemoData } from "../utils/seedDemoData";
 
@@ -14,6 +15,7 @@ export const ProjectsPage: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const didInitialFetch = useRef(false);
@@ -119,6 +121,12 @@ export const ProjectsPage: React.FC = () => {
                 {isGeneratingReport ? "Generating..." : "Generate Report"}
               </button>
               <button
+                onClick={() => setIsAIModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-neon-purple/20 text-neon-purple border border-neon-purple/50 rounded-lg hover:bg-neon-purple/30 hover:shadow-[0_0_15px_rgba(188,19,254,0.4)] transition-all text-sm font-medium group"
+              >
+                <Sparkles size={18} className="group-hover:animate-pulse" /> Create with AI
+              </button>
+              <button
                 onClick={() => setIsModalOpen(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-neon-blue/20 text-neon-blue border border-neon-blue/50 rounded-lg hover:bg-neon-blue/30 hover:shadow-[0_0_15px_rgba(0,243,255,0.4)] transition-all text-sm font-medium group"
               >
@@ -129,6 +137,7 @@ export const ProjectsPage: React.FC = () => {
         </div>
 
         <NewProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleCreateProject} />
+        <CreateProjectWithAIModal isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} onSuccess={fetchProjects} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {isLoading ? (

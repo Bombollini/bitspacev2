@@ -17,11 +17,19 @@ serve(async (req) => {
     const { to, subject, html } = await req.json();
 
     if (!RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY environment variable is not set.");
+      // Return 200 with a warning so the client doesn't surface this as an error
+      // (the meeting was already created; email is a background side-effect)
+      return new Response(JSON.stringify({ warning: "RESEND_API_KEY is not configured. Email not sent." }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
     if (!to || !to.length) {
-       throw new Error("No recipients defined.");
+      return new Response(JSON.stringify({ warning: "No recipients defined. Email not sent." }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
     const res = await fetch("https://api.resend.com/emails", {
@@ -38,20 +46,30 @@ serve(async (req) => {
       }),
     });
 
+    const responseText = await res.text();
+
     if (!res.ok) {
-        throw new Error(await res.text());
+      // Log the error server-side but return 200 so the client isn't disrupted.
+      // The meeting was already saved; email failure is non-critical.
+      console.error(`Resend API error (${res.status}):`, responseText);
+      return new Response(JSON.stringify({ warning: `Email delivery failed: ${responseText}` }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
-    const data = await res.json();
+    const data = JSON.parse(responseText);
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify({ success: true, data }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("send-meeting-email unexpected error:", error.message);
+    // Still return 200 — email is a background side-effect, not critical
+    return new Response(JSON.stringify({ warning: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 400,
+      status: 200,
     });
   }
 });
