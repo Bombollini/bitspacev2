@@ -200,7 +200,15 @@ export const api = {
       }
     },
     list: async (): Promise<Project[]> => {
-      const { data, error } = await supabase
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) throw new Error("Not authenticated");
+
+      // Get projects owned by user
+      const { data: ownedProjects, error: ownedError } = await supabase
         .from("projects")
         .select(
           `
@@ -208,11 +216,43 @@ export const api = {
             tasks:tasks(id, status)
         `,
         )
+        .eq("owner_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (ownedError) throw ownedError;
 
-      return data.map((p: any) => {
+      // Get project IDs where user is a member
+      const { data: memberData, error: memberError } = await supabase
+        .from("project_members")
+        .select("project_id")
+        .eq("user_id", user.id);
+
+      if (memberError) throw memberError;
+
+      const memberProjectIds = memberData.map((m: any) => m.project_id);
+
+      let memberProjects: any[] = [];
+      if (memberProjectIds.length > 0) {
+        const { data: fetchedMemberProjects, error: fetchError } = await supabase
+          .from("projects")
+          .select(
+            `
+              *,
+              tasks:tasks(id, status)
+          `,
+          )
+          .in("id", memberProjectIds)
+          .order("created_at", { ascending: false });
+
+        if (fetchError) throw fetchError;
+        memberProjects = fetchedMemberProjects;
+      }
+
+      // Merge and deduplicate
+      const allProjects = [...ownedProjects, ...memberProjects];
+      const deduped = Array.from(new Map(allProjects.map(p => [p.id, p])).values());
+
+      return deduped.map((p: any) => {
         const totalTasks = p.tasks.length;
         const completedTasks = p.tasks.filter((t: any) => t.status === "DONE").length;
         const overdueTasks = p.tasks.filter((t: any) => t.due_date && new Date(t.due_date) < new Date() && t.status !== "DONE").length;
@@ -224,6 +264,9 @@ export const api = {
       });
     },
     get: async (id: string): Promise<Project> => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
+
       const { data, error } = await supabase
         .from("projects")
         .select(
@@ -237,6 +280,18 @@ export const api = {
 
       if (error) throw error;
 
+      // Verify user has access to this project
+      const isOwner = data.owner_id === user.id;
+      const { data: memberData } = await supabase
+        .from("project_members")
+        .select("user_id")
+        .eq("project_id", id)
+        .eq("user_id", user.id);
+
+      if (!isOwner && (!memberData || memberData.length === 0)) {
+        throw new Error("Access denied to this project");
+      }
+
       const totalTasks = data.tasks.length;
       const completedTasks = data.tasks.filter((t: any) => t.status === "DONE").length;
       const overdueTasks = data.tasks.filter((t: any) => t.due_date && new Date(t.due_date) < new Date() && t.status !== "DONE").length;
@@ -247,6 +302,24 @@ export const api = {
       };
     },
     members: async (id: string): Promise<User[]> => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
+
+      // Verify user has access to this project
+      const { data: project } = await supabase.from("projects").select("owner_id").eq("id", id).single();
+      if (!project) throw new Error("Project not found");
+
+      const isOwner = project.owner_id === user.id;
+      const { data: memberCheck } = await supabase
+        .from("project_members")
+        .select("user_id")
+        .eq("project_id", id)
+        .eq("user_id", user.id);
+
+      if (!isOwner && (!memberCheck || memberCheck.length === 0)) {
+        throw new Error("Access denied to view project members");
+      }
+
       // Get profiles linked via project_members + the owner
       const { data: memberData, error } = await supabase
         .from("project_members")
@@ -259,8 +332,6 @@ export const api = {
 
       if (error) throw error;
 
-      // Also get owner
-      const { data: project } = await supabase.from("projects").select("owner_id").eq("id", id).single();
       let ownerData: any = null;
       if (project) {
         const { data: owner } = await supabase.from("profiles").select("*").eq("id", project.owner_id).single();
@@ -599,6 +670,24 @@ export const api = {
   },
   activity: {
     list: async (projectId: string): Promise<Activity[]> => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
+
+      // Verify user has access to this project
+      const { data: project } = await supabase.from("projects").select("owner_id").eq("id", projectId).single();
+      if (!project) throw new Error("Project not found");
+
+      const isOwner = project.owner_id === user.id;
+      const { data: memberCheck } = await supabase
+        .from("project_members")
+        .select("user_id")
+        .eq("project_id", projectId)
+        .eq("user_id", user.id);
+
+      if (!isOwner && (!memberCheck || memberCheck.length === 0)) {
+        throw new Error("Access denied to view project activities");
+      }
+
       const { data, error } = await supabase
         .from("activities")
         .select(
@@ -633,6 +722,9 @@ export const api = {
       }));
     },
     get: async (id: string): Promise<Activity> => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
+
       const { data, error } = await supabase
         .from("activities")
         .select(
@@ -645,6 +737,21 @@ export const api = {
         .single();
 
       if (error) throw error;
+
+      // Verify user has access to this activity's project
+      const { data: project } = await supabase.from("projects").select("owner_id").eq("id", data.project_id).single();
+      if (!project) throw new Error("Project not found");
+
+      const isOwner = project.owner_id === user.id;
+      const { data: memberCheck } = await supabase
+        .from("project_members")
+        .select("user_id")
+        .eq("project_id", data.project_id)
+        .eq("user_id", user.id);
+
+      if (!isOwner && (!memberCheck || memberCheck.length === 0)) {
+        throw new Error("Access denied to view this activity");
+      }
 
       return {
         id: data.id,
@@ -668,10 +775,35 @@ export const api = {
   },
   meetings: {
     list: async (projectId?: string): Promise<Meeting[]> => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
+
+      // Get project IDs user has access to (owned or member)
+      const { data: memberData } = await supabase
+        .from("project_members")
+        .select("project_id")
+        .eq("user_id", user.id);
+
+      const { data: ownedProjects } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("owner_id", user.id);
+
+      const accessibleProjectIds = [
+        ...ownedProjects.map((p: any) => p.id),
+        ...(memberData?.map((m: any) => m.project_id) || []),
+      ];
+
       let query = supabase.from("meetings").select("*").order("meeting_date", { ascending: false });
+      
       if (projectId) {
         query = query.eq("project_id", projectId);
+      } else if (accessibleProjectIds.length > 0) {
+        query = query.in("project_id", accessibleProjectIds);
+      } else {
+        return []; // User has no accessible projects
       }
+
       const { data, error } = await query;
       if (error) throw error;
       
@@ -690,8 +822,27 @@ export const api = {
       }));
     },
     get: async (id: string): Promise<Meeting> => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
+
       const { data, error } = await supabase.from("meetings").select("*").eq("id", id).single();
       if (error) throw error;
+
+      // Verify user has access to this meeting's project
+      const { data: project } = await supabase.from("projects").select("owner_id").eq("id", data.project_id).single();
+      if (!project) throw new Error("Project not found");
+
+      const isOwner = project.owner_id === user.id;
+      const { data: memberCheck } = await supabase
+        .from("project_members")
+        .select("user_id")
+        .eq("project_id", data.project_id)
+        .eq("user_id", user.id);
+
+      if (!isOwner && (!memberCheck || memberCheck.length === 0)) {
+        throw new Error("Access denied to view this meeting");
+      }
+
       return {
         id: data.id,
         projectId: data.project_id,
@@ -707,8 +858,24 @@ export const api = {
       };
     },
     create: async (data: CreateMeetingDto): Promise<Meeting> => {
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) throw new Error("Not authenticated");
+      const userId = userData.user.id;
+
+      // Verify user has access to this project (owner or member)
+      const { data: project } = await supabase.from("projects").select("owner_id").eq("id", data.projectId).single();
+      if (!project) throw new Error("Project not found");
+
+      const isOwner = project.owner_id === userId;
+      const { data: memberCheck } = await supabase
+        .from("project_members")
+        .select("user_id")
+        .eq("project_id", data.projectId)
+        .eq("user_id", userId);
+
+      if (!isOwner && (!memberCheck || memberCheck.length === 0)) {
+        throw new Error("Access denied - you are not a member of this project");
+      }
       
       const { data: meeting, error } = await supabase
         .from("meetings")
@@ -740,6 +907,21 @@ export const api = {
       };
     },
     update: async (id: string, data: UpdateMeetingDto): Promise<Meeting> => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
+
+      // Get meeting to find project
+      const { data: meeting, error: meetingError } = await supabase.from("meetings").select("project_id").eq("id", id).single();
+      if (meetingError) throw meetingError;
+
+      // Verify user has access to this meeting's project (only owner can update)
+      const { data: project } = await supabase.from("projects").select("owner_id").eq("id", meeting.project_id).single();
+      if (!project) throw new Error("Project not found");
+
+      if (project.owner_id !== user.id) {
+        throw new Error("Access denied - only project owner can update meetings");
+      }
+
       const updates: any = {};
       if (data.title) updates.title = data.title;
       if (data.meetingDate) updates.meeting_date = data.meetingDate;
@@ -749,24 +931,39 @@ export const api = {
       if (data.meetingSummary !== undefined) updates.meeting_summary = data.meetingSummary;
       updates.updated_at = new Date().toISOString();
 
-      const { data: meeting, error } = await supabase.from("meetings").update(updates).eq("id", id).select().single();
+      const { data: updatedMeeting, error } = await supabase.from("meetings").update(updates).eq("id", id).select().single();
       if (error) throw error;
       
       return {
-        id: meeting.id,
-        projectId: meeting.project_id,
-        title: meeting.title,
-        meetingDate: meeting.meeting_date,
-        meetingLink: meeting.meeting_link,
-        retrospective: meeting.retrospective,
-        meetingNotes: meeting.meeting_notes,
-        meetingSummary: meeting.meeting_summary,
-        createdBy: meeting.created_by,
-        createdAt: meeting.created_at,
-        updatedAt: meeting.updated_at,
+        id: updatedMeeting.id,
+        projectId: updatedMeeting.project_id,
+        title: updatedMeeting.title,
+        meetingDate: updatedMeeting.meeting_date,
+        meetingLink: updatedMeeting.meeting_link,
+        retrospective: updatedMeeting.retrospective,
+        meetingNotes: updatedMeeting.meeting_notes,
+        meetingSummary: updatedMeeting.meeting_summary,
+        createdBy: updatedMeeting.created_by,
+        createdAt: updatedMeeting.created_at,
+        updatedAt: updatedMeeting.updated_at,
       };
     },
     delete: async (id: string) => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
+
+      // Get meeting to find project
+      const { data: meeting } = await supabase.from("meetings").select("project_id").eq("id", id).single();
+      if (!meeting) throw new Error("Meeting not found");
+
+      // Verify user is the project owner
+      const { data: project } = await supabase.from("projects").select("owner_id").eq("id", meeting.project_id).single();
+      if (!project) throw new Error("Project not found");
+
+      if (project.owner_id !== user.id) {
+        throw new Error("Access denied - only project owner can delete meetings");
+      }
+
       const { error } = await supabase.from("meetings").delete().eq("id", id);
       if (error) throw error;
     },
@@ -780,6 +977,24 @@ export const api = {
   },
   insights: {
     getLatest: async (projectId: string): Promise<ProjectInsight | null> => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
+
+      // Verify user has access to this project
+      const { data: project } = await supabase.from("projects").select("owner_id").eq("id", projectId).single();
+      if (!project) throw new Error("Project not found");
+
+      const isOwner = project.owner_id === user.id;
+      const { data: memberCheck } = await supabase
+        .from("project_members")
+        .select("user_id")
+        .eq("project_id", projectId)
+        .eq("user_id", user.id);
+
+      if (!isOwner && (!memberCheck || memberCheck.length === 0)) {
+        throw new Error("Access denied to view project insights");
+      }
+
       const { data, error } = await supabase
         .from('ai_project_insights')
         .select('*')
@@ -801,6 +1016,17 @@ export const api = {
       };
     },
     save: async (projectId: string, insightData: Omit<ProjectInsight, 'id' | 'projectId' | 'createdAt'>): Promise<ProjectInsight> => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
+
+      // Verify user has access to this project (owner only for saving)
+      const { data: project } = await supabase.from("projects").select("owner_id").eq("id", projectId).single();
+      if (!project) throw new Error("Project not found");
+
+      if (project.owner_id !== user.id) {
+        throw new Error("Access denied - only project owner can save insights");
+      }
+
       const { data, error } = await supabase
         .from('ai_project_insights')
         .insert({
@@ -830,13 +1056,48 @@ export const api = {
     global: async (query: string): Promise<{ projects: Project[]; tasks: Task[] }> => {
       if (!query || query.length < 2) return { projects: [], tasks: [] };
 
-      const { data: projects, error: projectsError } = await supabase.from("projects").select("*").ilike("name", `%${query}%`).limit(5);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
 
-      if (projectsError) throw projectsError;
+      // Get accessible project IDs
+      const { data: memberData } = await supabase
+        .from("project_members")
+        .select("project_id")
+        .eq("user_id", user.id);
 
-      const { data: tasks, error: tasksError } = await supabase.from("tasks").select("*").ilike("title", `%${query}%`).limit(5);
+      const { data: ownedProjects } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("owner_id", user.id);
 
-      if (tasksError) throw tasksError;
+      const accessibleProjectIds = [
+        ...ownedProjects.map((p: any) => p.id),
+        ...(memberData?.map((m: any) => m.project_id) || []),
+      ];
+
+      let projects: any[] = [];
+      if (accessibleProjectIds.length > 0) {
+        const { data: projectResults, error: projectsError } = await supabase
+          .from("projects")
+          .select("*")
+          .in("id", accessibleProjectIds)
+          .ilike("name", `%${query}%`)
+          .limit(5);
+        if (projectsError) throw projectsError;
+        projects = projectResults;
+      }
+
+      let tasks: any[] = [];
+      if (accessibleProjectIds.length > 0) {
+        const { data: taskResults, error: tasksError } = await supabase
+          .from("tasks")
+          .select("*")
+          .in("project_id", accessibleProjectIds)
+          .ilike("title", `%${query}%`)
+          .limit(5);
+        if (tasksError) throw tasksError;
+        tasks = taskResults;
+      }
 
       return {
         projects: projects.map(mapProject),
