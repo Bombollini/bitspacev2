@@ -1,0 +1,90 @@
+
+<svg width="1440" height="1024" viewBox="0 0 1440 1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="1024" fill="#FFFFFF" />
+  
+  
+    <rect x="0" y="0" width="256" height="1024" fill="#FFFFFF" stroke="#000000" />
+    <g transform="translate(0, 0)">
+      <rect x="24" y="24" width="32" height="32" rx="8" fill="none" stroke="#000000" />
+      <text x="68" y="46" font-family="Arial" font-size="20" font-weight="bold" fill="#000000">Bitspace</text>
+      <line x1="24" y1="88" x2="232" y2="88" stroke="#000000" />
+      
+      
+      <rect x="24" y="180" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="205" font-family="Arial" font-size="14" fill="#000000">Dashboard</text>
+    
+      <rect x="24" y="228" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="253" font-family="Arial" font-size="14" fill="#000000">Projects</text>
+    
+      <rect x="24" y="276" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="301" font-family="Arial" font-size="14" fill="#000000">Meetings</text>
+    
+      <rect x="24" y="324" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="349" font-family="Arial" font-size="14" fill="#000000">Settings</text>
+    
+      
+      <rect x="0" y="904" width="256" height="120" fill="#FFFFFF" stroke="#000000" />
+      <rect x="24" y="920" width="208" height="72" rx="8" fill="none" stroke="#000000" />
+      <circle cx="56" cy="956" r="20" fill="none" stroke="#000000" />
+      <text x="84" y="951" font-family="Arial" font-size="14" fill="#000000">Alex Developer</text>
+      <text x="84" y="968" font-family="Arial" font-size="12" fill="#000000">Owner</text>
+      <rect x="24" y="1000" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="1022" font-family="Arial" font-size="14" fill="#000000">Logout</text>
+    </g>
+  
+  
+    <rect x="272" y="16" width="1144" height="64" rx="12" fill="#FFFFFF" stroke="#000000" />
+    <g transform="translate(272, 16)">
+      <rect x="20" y="12" width="520" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="40" y="38" font-family="Arial" font-size="14" fill="#000000">Search projects or tasks...</text>
+      
+      <circle cx="1080" cy="32" r="20" fill="none" stroke="#000000" />
+      <circle cx="1120" cy="32" r="20" fill="none" stroke="#000000" />
+    </g>
+  
+  
+  <!-- Konten Utama -->
+  <g transform="translate(272, 112)">
+    <text x="0" y="30" font-family="Arial" font-size="32" font-weight="bold" fill="#000000">My Profile</text>
+    
+    <rect x="0" y="80" width="1144" height="600" rx="16" fill="#FFFFFF" stroke="#000000" />
+    
+    <g transform="translate(30, 110)">
+      <!-- Avatar &amp; Name -->
+      <circle cx="80" cy="80" r="60" fill="none" stroke="#000000" />
+      <text x="180" y="70" font-family="Arial" font-size="20" font-weight="bold" fill="#000000">Alex Developer</text>
+      <text x="180" y="95" font-family="Arial" font-size="14" fill="#000000">Owner • Joined Jan 2024</text>
+      
+      <!-- Form -->
+      <g transform="translate(0, 140)">
+        <text x="0" y="30" font-family="Arial" font-size="14" fill="#000000">Full Name</text>
+        <rect x="0" y="40" width="500" height="48" rx="8" fill="none" stroke="#000000" />
+        <text x="16" y="70" font-family="Arial" font-size="14" fill="#000000">Alex Developer</text>
+        
+        <text x="548" y="30" font-family="Arial" font-size="14" fill="#000000">Email</text>
+        <rect x="548" y="40" width="536" height="48" rx="8" fill="none" stroke="#000000" />
+        <text x="564" y="70" font-family="Arial" font-size="14" fill="#000000">alex@example.com</text>
+        
+        <text x="0" y="130" font-family="Arial" font-size="14" fill="#000000">Role</text>
+        <rect x="0" y="140" width="500" height="48" rx="8" fill="none" stroke="#000000" />
+        <text x="16" y="170" font-family="Arial" font-size="14" fill="#000000">Owner</text>
+        
+        <text x="548" y="130" font-family="Arial" font-size="14" fill="#000000">Time Zone</text>
+        <rect x="548" y="140" width="536" height="48" rx="8" fill="none" stroke="#000000" />
+        <text x="564" y="170" font-family="Arial" font-size="14" fill="#000000">UTC+7</text>
+        
+        <!-- Bio -->
+        <text x="0" y="230" font-family="Arial" font-size="14" fill="#000000">Bio</text>
+        <rect x="0" y="240" width="1084" height="100" rx="8" fill="none" stroke="#000000" />
+        <text x="16" y="270" font-family="Arial" font-size="12" fill="#000000">Full-stack developer and tech enthusiast. Love building products that help teams work better together.</text>
+        
+        <!-- Buttons -->
+        <rect x="0" y="370" width="200" height="48" rx="12" fill="none" stroke="#000000" />
+        <text x="100" y="400" font-family="Arial" font-size="14" font-weight="bold" fill="#000000" text-anchor="middle">Save Changes</text>
+        
+        <rect x="232" y="370" width="200" height="48" rx="12" fill="none" stroke="#000000" />
+        <text x="332" y="400" font-family="Arial" font-size="14" font-weight="bold" fill="#000000" text-anchor="middle">Change Password</text>
+      </g>
+    </g>
+  </g>
+</svg>

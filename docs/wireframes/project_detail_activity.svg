@@ -1,0 +1,130 @@
+
+<svg width="1440" height="1024" viewBox="0 0 1440 1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="1024" fill="#FFFFFF" />
+  
+  
+    <rect x="0" y="0" width="256" height="1024" fill="#FFFFFF" stroke="#000000" />
+    <g transform="translate(0, 0)">
+      <rect x="24" y="24" width="32" height="32" rx="8" fill="none" stroke="#000000" />
+      <text x="68" y="46" font-family="Arial" font-size="20" font-weight="bold" fill="#000000">Bitspace</text>
+      <line x1="24" y1="88" x2="232" y2="88" stroke="#000000" />
+      
+      
+      <rect x="24" y="180" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="205" font-family="Arial" font-size="14" fill="#000000">Dashboard</text>
+    
+      <rect x="24" y="228" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="253" font-family="Arial" font-size="14" fill="#000000">Projects</text>
+    
+      <rect x="24" y="276" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="301" font-family="Arial" font-size="14" fill="#000000">Meetings</text>
+    
+      <rect x="24" y="324" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="349" font-family="Arial" font-size="14" fill="#000000">Settings</text>
+    
+      
+      <rect x="0" y="904" width="256" height="120" fill="#FFFFFF" stroke="#000000" />
+      <rect x="24" y="920" width="208" height="72" rx="8" fill="none" stroke="#000000" />
+      <circle cx="56" cy="956" r="20" fill="none" stroke="#000000" />
+      <text x="84" y="951" font-family="Arial" font-size="14" fill="#000000">Alex Developer</text>
+      <text x="84" y="968" font-family="Arial" font-size="12" fill="#000000">Owner</text>
+      <rect x="24" y="1000" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="1022" font-family="Arial" font-size="14" fill="#000000">Logout</text>
+    </g>
+  
+  
+    <rect x="272" y="16" width="1144" height="64" rx="12" fill="#FFFFFF" stroke="#000000" />
+    <g transform="translate(272, 16)">
+      <rect x="20" y="12" width="520" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="40" y="38" font-family="Arial" font-size="14" fill="#000000">Search projects or tasks...</text>
+      
+      <circle cx="1080" cy="32" r="20" fill="none" stroke="#000000" />
+      <circle cx="1120" cy="32" r="20" fill="none" stroke="#000000" />
+    </g>
+  
+  
+  <!-- Konten Utama -->
+  <g transform="translate(272, 112)">
+    <!-- Header Proyek -->
+    <text x="0" y="30" font-family="Arial" font-size="32" font-weight="bold" fill="#000000">Neural Network</text>
+    
+    
+    <g transform="translate(0, 110)">
+      <rect x="0" y="0" width="1000" height="52" rx="12" fill="none" stroke="#000000" />
+      <g transform="translate(0, 0)">
+        
+      <rect x="8" y="6" width="140" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="78" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Milestones</text>
+    
+      <rect x="164" y="6" width="90" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="209" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Tasks</text>
+    
+      <rect x="270" y="6" width="120" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="330" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Overview</text>
+    
+      <rect x="406" y="6" width="110" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="461" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Members</text>
+    
+      <rect x="532" y="6" width="120" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="592" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Activity</text>
+    
+      <rect x="668" y="6" width="130" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="733" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">AI Report</text>
+    
+      <rect x="814" y="6" width="130" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="879" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">AI Health</text>
+    
+      </g>
+    </g>
+  
+    
+    <!-- Activity Feed -->
+    <g transform="translate(0, 190)">
+      <rect x="0" y="0" width="1144" height="600" rx="16" fill="#FFFFFF" stroke="#000000" />
+      <text x="24" y="40" font-family="Arial" font-size="18" font-weight="bold" fill="#000000">Recent Activity</text>
+      
+      <g transform="translate(24, 60)">
+        
+    <g>
+      <circle cx="24" cy="24" r="16" fill="none" stroke="#000000" />
+      <text x="56" y="28" font-family="Arial" font-size="14" fill="#000000">Alex Developer</text>
+      <text x="56" y="48" font-family="Arial" font-size="12" fill="#000000">created a new task: Build API Endpoints</text>
+      <text x="56" y="68" font-family="Arial" font-size="10" fill="#000000">2 minutes ago</text>
+    </g>
+  
+        
+    <g>
+      <circle cx="24" cy="114" r="16" fill="none" stroke="#000000" />
+      <text x="56" y="118" font-family="Arial" font-size="14" fill="#000000">Sarah Designer</text>
+      <text x="56" y="138" font-family="Arial" font-size="12" fill="#000000">updated task status to In Progress</text>
+      <text x="56" y="158" font-family="Arial" font-size="10" fill="#000000">15 minutes ago</text>
+    </g>
+  
+        
+    <g>
+      <circle cx="24" cy="204" r="16" fill="none" stroke="#000000" />
+      <text x="56" y="208" font-family="Arial" font-size="14" fill="#000000">Mike Engineer</text>
+      <text x="56" y="228" font-family="Arial" font-size="12" fill="#000000">completed task: Project Setup</text>
+      <text x="56" y="248" font-family="Arial" font-size="10" fill="#000000">1 hour ago</text>
+    </g>
+  
+        
+    <g>
+      <circle cx="24" cy="294" r="16" fill="none" stroke="#000000" />
+      <text x="56" y="298" font-family="Arial" font-size="14" fill="#000000">Alex Developer</text>
+      <text x="56" y="318" font-family="Arial" font-size="12" fill="#000000">invited Sarah Designer to the project</text>
+      <text x="56" y="338" font-family="Arial" font-size="10" fill="#000000">2 hours ago</text>
+    </g>
+  
+        
+    <g>
+      <circle cx="24" cy="384" r="16" fill="none" stroke="#000000" />
+      <text x="56" y="388" font-family="Arial" font-size="14" fill="#000000">System</text>
+      <text x="56" y="408" font-family="Arial" font-size="12" fill="#000000">milestone MVP Development progress updated to 75%</text>
+      <text x="56" y="428" font-family="Arial" font-size="10" fill="#000000">3 hours ago</text>
+    </g>
+  
+      </g>
+    </g>
+  </g>
+</svg>

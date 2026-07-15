@@ -1,0 +1,85 @@
+
+<svg width="1440" height="1024" viewBox="0 0 1440 1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="1024" fill="#FFFFFF" />
+  
+  
+    <rect x="0" y="0" width="256" height="1024" fill="#FFFFFF" stroke="#000000" />
+    <g transform="translate(0, 0)">
+      <rect x="24" y="24" width="32" height="32" rx="8" fill="none" stroke="#000000" />
+      <text x="68" y="46" font-family="Arial" font-size="20" font-weight="bold" fill="#000000">Bitspace</text>
+      <line x1="24" y1="88" x2="232" y2="88" stroke="#000000" />
+      
+      
+      <rect x="24" y="180" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="205" font-family="Arial" font-size="14" fill="#000000">Dashboard</text>
+    
+      <rect x="24" y="228" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="253" font-family="Arial" font-size="14" fill="#000000">Projects</text>
+    
+      <rect x="24" y="276" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="301" font-family="Arial" font-size="14" fill="#000000">Meetings</text>
+    
+      <rect x="24" y="324" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="349" font-family="Arial" font-size="14" fill="#000000">Settings</text>
+    
+      
+      <rect x="0" y="904" width="256" height="120" fill="#FFFFFF" stroke="#000000" />
+      <rect x="24" y="920" width="208" height="72" rx="8" fill="none" stroke="#000000" />
+      <circle cx="56" cy="956" r="20" fill="none" stroke="#000000" />
+      <text x="84" y="951" font-family="Arial" font-size="14" fill="#000000">Alex Developer</text>
+      <text x="84" y="968" font-family="Arial" font-size="12" fill="#000000">Owner</text>
+      <rect x="24" y="1000" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="1022" font-family="Arial" font-size="14" fill="#000000">Logout</text>
+    </g>
+  
+  
+    <rect x="272" y="16" width="1144" height="64" rx="12" fill="#FFFFFF" stroke="#000000" />
+    <g transform="translate(272, 16)">
+      <rect x="20" y="12" width="520" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="40" y="38" font-family="Arial" font-size="14" fill="#000000">Search projects or tasks...</text>
+      
+      <circle cx="1080" cy="32" r="20" fill="none" stroke="#000000" />
+      <circle cx="1120" cy="32" r="20" fill="none" stroke="#000000" />
+    </g>
+  
+  
+  <!-- Konten Utama -->
+  <g transform="translate(272, 112)">
+    <text x="0" y="30" font-family="Arial" font-size="32" font-weight="bold" fill="#000000">Sprint Planning</text>
+    
+    <!-- Meeting Info -->
+    <g transform="translate(0, 80)">
+      <rect x="0" y="0" width="1144" height="600" rx="16" fill="#FFFFFF" stroke="#000000" />
+      
+      <!-- Left Column -->
+      <g transform="translate(24, 40)">
+        <text x="0" y="30" font-family="Arial" font-size="14" font-weight="bold" fill="#000000">Meeting Details</text>
+        <text x="0" y="60" font-family="Arial" font-size="12" fill="#000000">Date: Tomorrow, February 15</text>
+        <text x="0" y="85" font-family="Arial" font-size="12" fill="#000000">Time: 10:00 AM - 11:00 AM</text>
+        <text x="0" y="110" font-family="Arial" font-size="12" fill="#000000">Project: Neural Network</text>
+        <text x="0" y="135" font-family="Arial" font-size="12" fill="#000000">Attendees: 4 people</text>
+        
+        <text x="0" y="180" font-family="Arial" font-size="14" font-weight="bold" fill="#000000">Agenda</text>
+        <rect x="0" y="200" width="500" height="32" rx="8" fill="none" stroke="#000000" />
+        <text x="16" y="222" font-family="Arial" font-size="12" fill="#000000">1. Review previous sprint</text>
+        <rect x="0" y="244" width="500" height="32" rx="8" fill="none" stroke="#000000" />
+        <text x="16" y="266" font-family="Arial" font-size="12" fill="#000000">2. Plan next sprint tasks</text>
+        <rect x="0" y="288" width="500" height="32" rx="8" fill="none" stroke="#000000" />
+        <text x="16" y="310" font-family="Arial" font-size="12" fill="#000000">3. Assign responsibilities</text>
+      </g>
+      
+      <!-- Right Column: AI Summary -->
+      <g transform="translate(568, 40)">
+        <text x="0" y="30" font-family="Arial" font-size="14" font-weight="bold" fill="#000000">AI Summary</text>
+        <rect x="0" y="50" width="552" height="200" rx="8" fill="#FFFFFF" stroke="#000000" />
+        <text x="16" y="80" font-family="Arial" font-size="12" fill="#000000">This meeting will focus on sprint planning for the Neural Network project. Key decisions will be made about task prioritization and team assignments.</text>
+        
+        <rect x="0" y="270" width="552" height="250" rx="8" fill="#FFFFFF" stroke="#000000" />
+        <text x="16" y="300" font-family="Arial" font-size="14" font-weight="bold" fill="#000000">Record &amp; Transcribe</text>
+        <rect x="16" y="330" width="240" height="48" rx="8" fill="none" stroke="#000000" />
+        <text x="136" y="360" font-family="Arial" font-size="14" font-weight="bold" fill="#000000" text-anchor="middle">Start Recording</text>
+        <text x="16" y="410" font-family="Arial" font-size="12" fill="#000000">Auto-generate meeting notes with AI</text>
+      </g>
+    </g>
+  </g>
+</svg>

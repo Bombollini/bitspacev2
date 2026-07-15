@@ -1,0 +1,136 @@
+
+<svg width="1440" height="1024" viewBox="0 0 1440 1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="1024" fill="#FFFFFF" />
+  
+  
+    <rect x="0" y="0" width="256" height="1024" fill="#FFFFFF" stroke="#000000" />
+    <g transform="translate(0, 0)">
+      <rect x="24" y="24" width="32" height="32" rx="8" fill="none" stroke="#000000" />
+      <text x="68" y="46" font-family="Arial" font-size="20" font-weight="bold" fill="#000000">Bitspace</text>
+      <line x1="24" y1="88" x2="232" y2="88" stroke="#000000" />
+      
+      
+      <rect x="24" y="180" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="205" font-family="Arial" font-size="14" fill="#000000">Dashboard</text>
+    
+      <rect x="24" y="228" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="253" font-family="Arial" font-size="14" fill="#000000">Projects</text>
+    
+      <rect x="24" y="276" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="301" font-family="Arial" font-size="14" fill="#000000">Meetings</text>
+    
+      <rect x="24" y="324" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="349" font-family="Arial" font-size="14" fill="#000000">Settings</text>
+    
+      
+      <rect x="0" y="904" width="256" height="120" fill="#FFFFFF" stroke="#000000" />
+      <rect x="24" y="920" width="208" height="72" rx="8" fill="none" stroke="#000000" />
+      <circle cx="56" cy="956" r="20" fill="none" stroke="#000000" />
+      <text x="84" y="951" font-family="Arial" font-size="14" fill="#000000">Alex Developer</text>
+      <text x="84" y="968" font-family="Arial" font-size="12" fill="#000000">Owner</text>
+      <rect x="24" y="1000" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="1022" font-family="Arial" font-size="14" fill="#000000">Logout</text>
+    </g>
+  
+  
+    <rect x="272" y="16" width="1144" height="64" rx="12" fill="#FFFFFF" stroke="#000000" />
+    <g transform="translate(272, 16)">
+      <rect x="20" y="12" width="520" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="40" y="38" font-family="Arial" font-size="14" fill="#000000">Search projects or tasks...</text>
+      
+      <circle cx="1080" cy="32" r="20" fill="none" stroke="#000000" />
+      <circle cx="1120" cy="32" r="20" fill="none" stroke="#000000" />
+    </g>
+  
+  
+  <!-- Konten Utama -->
+  <g transform="translate(272, 112)">
+    <!-- Header Proyek -->
+    <text x="0" y="30" font-family="Arial" font-size="32" font-weight="bold" fill="#000000">Neural Network</text>
+    <rect x="920" y="0" width="224" height="40" rx="8" fill="none" stroke="#000000" />
+    <text x="1032" y="26" font-family="Arial" font-size="14" font-weight="bold" fill="#000000" text-anchor="middle">Invite Member</text>
+    
+    
+    <g transform="translate(0, 110)">
+      <rect x="0" y="0" width="1000" height="52" rx="12" fill="none" stroke="#000000" />
+      <g transform="translate(0, 0)">
+        
+      <rect x="8" y="6" width="140" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="78" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Milestones</text>
+    
+      <rect x="164" y="6" width="90" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="209" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Tasks</text>
+    
+      <rect x="270" y="6" width="120" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="330" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Overview</text>
+    
+      <rect x="406" y="6" width="110" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="461" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Members</text>
+    
+      <rect x="532" y="6" width="120" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="592" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Activity</text>
+    
+      <rect x="668" y="6" width="130" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="733" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">AI Report</text>
+    
+      <rect x="814" y="6" width="130" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="879" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">AI Health</text>
+    
+      </g>
+    </g>
+  
+    
+    <!-- Konten Members -->
+    <g transform="translate(0, 190)">
+      <rect x="0" y="0" width="1144" height="600" rx="16" fill="#FFFFFF" stroke="#000000" />
+      <text x="24" y="40" font-family="Arial" font-size="18" font-weight="bold" fill="#000000">Team Members</text>
+      
+      <!-- Tabel -->
+      <g transform="translate(24, 60)">
+        <!-- Header -->
+        <rect x="0" y="0" width="1096" height="56" fill="#FFFFFF" stroke="#000000" />
+        <text x="24" y="34" font-family="Arial" font-size="12" font-weight="bold" fill="#000000">NAME</text>
+        <text x="350" y="34" font-family="Arial" font-size="12" font-weight="bold" fill="#000000">ROLE</text>
+        <text x="550" y="34" font-family="Arial" font-size="12" font-weight="bold" fill="#000000">TASKS</text>
+        <text x="750" y="34" font-family="Arial" font-size="12" font-weight="bold" fill="#000000">ACTIVITY</text>
+        <text x="950" y="34" font-family="Arial" font-size="12" font-weight="bold" fill="#000000">ACTIONS</text>
+        
+        <!-- Row 1: Owner -->
+        <rect x="0" y="56" width="1096" height="100" fill="#FFFFFF" stroke="#000000" />
+        <circle cx="56" cy="106" r="28" fill="none" stroke="#000000" />
+        <text x="100" y="96" font-family="Arial" font-size="14" font-weight="bold" fill="#000000">Alex Developer</text>
+        <text x="100" y="116" font-family="Arial" font-size="12" fill="#000000">alex@example.com</text>
+        <rect x="350" y="86" width="100" height="32" rx="16" fill="none" stroke="#000000" />
+        <text x="400" y="106" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Owner</text>
+        <text x="550" y="106" font-family="Arial" font-size="14" fill="#000000">15 tasks</text>
+        
+        <!-- Row 2: Designer -->
+        <rect x="0" y="156" width="1096" height="100" fill="#FFFFFF" stroke="#000000" />
+        <circle cx="56" cy="206" r="28" fill="none" stroke="#000000" />
+        <text x="100" y="196" font-family="Arial" font-size="14" font-weight="bold" fill="#000000">Sarah Designer</text>
+        <text x="100" y="216" font-family="Arial" font-size="12" fill="#000000">sarah@example.com</text>
+        <rect x="350" y="186" width="100" height="32" rx="16" fill="none" stroke="#000000" />
+        <text x="400" y="206" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Designer</text>
+        <text x="550" y="206" font-family="Arial" font-size="14" fill="#000000">12 tasks</text>
+        
+        <!-- Row 3: Engineer -->
+        <rect x="0" y="256" width="1096" height="100" fill="#FFFFFF" stroke="#000000" />
+        <circle cx="56" cy="306" r="28" fill="none" stroke="#000000" />
+        <text x="100" y="296" font-family="Arial" font-size="14" font-weight="bold" fill="#000000">Mike Engineer</text>
+        <text x="100" y="316" font-family="Arial" font-size="12" fill="#000000">mike@example.com</text>
+        <rect x="350" y="286" width="100" height="32" rx="16" fill="none" stroke="#000000" />
+        <text x="400" y="306" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Engineer</text>
+        <text x="550" y="306" font-family="Arial" font-size="14" fill="#000000">18 tasks</text>
+        
+        <!-- Row 4: QA -->
+        <rect x="0" y="356" width="1096" height="100" fill="#FFFFFF" stroke="#000000" />
+        <circle cx="56" cy="406" r="28" fill="none" stroke="#000000" />
+        <text x="100" y="396" font-family="Arial" font-size="14" font-weight="bold" fill="#000000">Emma QA</text>
+        <text x="100" y="416" font-family="Arial" font-size="12" fill="#000000">emma@example.com</text>
+        <rect x="350" y="386" width="100" height="32" rx="16" fill="none" stroke="#000000" />
+        <text x="400" y="406" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">QA</text>
+        <text x="550" y="406" font-family="Arial" font-size="14" fill="#000000">10 tasks</text>
+      </g>
+    </g>
+  </g>
+</svg>

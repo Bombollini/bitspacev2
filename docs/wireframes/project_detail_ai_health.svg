@@ -1,0 +1,140 @@
+
+<svg width="1440" height="1024" viewBox="0 0 1440 1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="1024" fill="#FFFFFF" />
+  
+  
+    <rect x="0" y="0" width="256" height="1024" fill="#FFFFFF" stroke="#000000" />
+    <g transform="translate(0, 0)">
+      <rect x="24" y="24" width="32" height="32" rx="8" fill="none" stroke="#000000" />
+      <text x="68" y="46" font-family="Arial" font-size="20" font-weight="bold" fill="#000000">Bitspace</text>
+      <line x1="24" y1="88" x2="232" y2="88" stroke="#000000" />
+      
+      
+      <rect x="24" y="180" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="205" font-family="Arial" font-size="14" fill="#000000">Dashboard</text>
+    
+      <rect x="24" y="228" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="253" font-family="Arial" font-size="14" fill="#000000">Projects</text>
+    
+      <rect x="24" y="276" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="301" font-family="Arial" font-size="14" fill="#000000">Meetings</text>
+    
+      <rect x="24" y="324" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="349" font-family="Arial" font-size="14" fill="#000000">Settings</text>
+    
+      
+      <rect x="0" y="904" width="256" height="120" fill="#FFFFFF" stroke="#000000" />
+      <rect x="24" y="920" width="208" height="72" rx="8" fill="none" stroke="#000000" />
+      <circle cx="56" cy="956" r="20" fill="none" stroke="#000000" />
+      <text x="84" y="951" font-family="Arial" font-size="14" fill="#000000">Alex Developer</text>
+      <text x="84" y="968" font-family="Arial" font-size="12" fill="#000000">Owner</text>
+      <rect x="24" y="1000" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="1022" font-family="Arial" font-size="14" fill="#000000">Logout</text>
+    </g>
+  
+  
+    <rect x="272" y="16" width="1144" height="64" rx="12" fill="#FFFFFF" stroke="#000000" />
+    <g transform="translate(272, 16)">
+      <rect x="20" y="12" width="520" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="40" y="38" font-family="Arial" font-size="14" fill="#000000">Search projects or tasks...</text>
+      
+      <circle cx="1080" cy="32" r="20" fill="none" stroke="#000000" />
+      <circle cx="1120" cy="32" r="20" fill="none" stroke="#000000" />
+    </g>
+  
+  
+  <!-- Konten Utama -->
+  <g transform="translate(272, 112)">
+    <!-- Header Proyek -->
+    <text x="0" y="30" font-family="Arial" font-size="32" font-weight="bold" fill="#000000">Neural Network</text>
+    
+    
+    <g transform="translate(0, 110)">
+      <rect x="0" y="0" width="1000" height="52" rx="12" fill="none" stroke="#000000" />
+      <g transform="translate(0, 0)">
+        
+      <rect x="8" y="6" width="140" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="78" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Milestones</text>
+    
+      <rect x="164" y="6" width="90" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="209" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Tasks</text>
+    
+      <rect x="270" y="6" width="120" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="330" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Overview</text>
+    
+      <rect x="406" y="6" width="110" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="461" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Members</text>
+    
+      <rect x="532" y="6" width="120" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="592" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Activity</text>
+    
+      <rect x="668" y="6" width="130" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="733" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">AI Report</text>
+    
+      <rect x="814" y="6" width="130" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="879" y="31" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">AI Health</text>
+    
+      </g>
+    </g>
+  
+    
+    <!-- Konten AI Health -->
+    <g transform="translate(0, 190)">
+      <rect x="0" y="0" width="1144" height="600" rx="16" fill="#FFFFFF" stroke="#000000" />
+      <text x="24" y="40" font-family="Arial" font-size="18" font-weight="bold" fill="#000000">AI Health Analysis</text>
+      
+      <g transform="translate(24, 60)">
+        <!-- Overall Health Score -->
+        <rect x="0" y="0" width="1096" height="200" rx="8" fill="#FFFFFF" stroke="#000000" />
+        <circle cx="548" cy="100" r="60" fill="none" stroke="#000000" stroke-width="8" />
+        <text x="548" y="90" font-family="Arial" font-size="36" font-weight="bold" text-anchor="middle" fill="#000000">85</text>
+        <text x="548" y="120" font-family="Arial" font-size="14" text-anchor="middle" fill="#000000">Health Score</text>
+        <text x="548" y="150" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">Good condition</text>
+        
+        <!-- Factor Scores -->
+        <rect x="0" y="220" width="540" height="300" rx="8" fill="#FFFFFF" stroke="#000000" />
+        <text x="20" y="250" font-family="Arial" font-size="14" font-weight="bold" fill="#000000">Health Factors</text>
+        
+        <g transform="translate(20, 270)">
+          <!-- Timeline -->
+          <text x="0" y="20" font-family="Arial" font-size="12" fill="#000000">Timeline</text>
+          <rect x="150" y="5" width="350" height="12" rx="6" fill="none" stroke="#000000" />
+          <rect x="150" y="5" width="315" height="12" rx="6" fill="#000000" />
+          <text x="520" y="15" font-family="Arial" font-size="10" fill="#000000">90%</text>
+          
+          <!-- Budget -->
+          <text x="0" y="60" font-family="Arial" font-size="12" fill="#000000">Budget</text>
+          <rect x="150" y="45" width="350" height="12" rx="6" fill="none" stroke="#000000" />
+          <rect x="150" y="45" width="280" height="12" rx="6" fill="#000000" />
+          <text x="520" y="55" font-family="Arial" font-size="10" fill="#000000">80%</text>
+          
+          <!-- Team Morale -->
+          <text x="0" y="100" font-family="Arial" font-size="12" fill="#000000">Team Morale</text>
+          <rect x="150" y="85" width="350" height="12" rx="6" fill="none" stroke="#000000" />
+          <rect x="150" y="85" width="332" height="12" rx="6" fill="#000000" />
+          <text x="520" y="95" font-family="Arial" font-size="10" fill="#000000">95%</text>
+          
+          <!-- Scope -->
+          <text x="0" y="140" font-family="Arial" font-size="12" fill="#000000">Scope Control</text>
+          <rect x="150" y="125" width="350" height="12" rx="6" fill="none" stroke="#000000" />
+          <rect x="150" y="125" width="262" height="12" rx="6" fill="#000000" />
+          <text x="520" y="135" font-family="Arial" font-size="10" fill="#000000">75%</text>
+        </g>
+        
+        <!-- Risk Factors -->
+        <rect x="556" y="220" width="540" height="300" rx="8" fill="#FFFFFF" stroke="#000000" />
+        <text x="576" y="250" font-family="Arial" font-size="14" font-weight="bold" fill="#000000">Risk Factors</text>
+        
+        <g transform="translate(576, 270)">
+          <rect x="0" y="0" width="500" height="60" rx="8" fill="#FFFFFF" stroke="#000000" />
+          <text x="16" y="25" font-family="Arial" font-size="12" font-weight="bold" fill="#000000">Medium Risk</text>
+          <text x="16" y="45" font-family="Arial" font-size="11" fill="#000000">Beta testing deadline approaching - recommend adding QA resources</text>
+          
+          <rect x="0" y="80" width="500" height="60" rx="8" fill="#FFFFFF" stroke="#000000" />
+          <text x="16" y="105" font-family="Arial" font-size="12" font-weight="bold" fill="#000000">Low Risk</text>
+          <text x="16" y="125" font-family="Arial" font-size="11" fill="#000000">Minor scope creep observed - monitor closely</text>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

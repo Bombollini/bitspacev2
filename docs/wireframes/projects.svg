@@ -1,0 +1,101 @@
+
+<svg width="1440" height="1024" viewBox="0 0 1440 1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="1024" fill="#FFFFFF" />
+  
+  
+    <rect x="0" y="0" width="256" height="1024" fill="#FFFFFF" stroke="#000000" />
+    <g transform="translate(0, 0)">
+      <rect x="24" y="24" width="32" height="32" rx="8" fill="none" stroke="#000000" />
+      <text x="68" y="46" font-family="Arial" font-size="20" font-weight="bold" fill="#000000">Bitspace</text>
+      <line x1="24" y1="88" x2="232" y2="88" stroke="#000000" />
+      
+      
+      <rect x="24" y="180" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="205" font-family="Arial" font-size="14" fill="#000000">Dashboard</text>
+    
+      <rect x="24" y="228" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="253" font-family="Arial" font-size="14" fill="#000000">Projects</text>
+    
+      <rect x="24" y="276" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="301" font-family="Arial" font-size="14" fill="#000000">Meetings</text>
+    
+      <rect x="24" y="324" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="349" font-family="Arial" font-size="14" fill="#000000">Settings</text>
+    
+      
+      <rect x="0" y="904" width="256" height="120" fill="#FFFFFF" stroke="#000000" />
+      <rect x="24" y="920" width="208" height="72" rx="8" fill="none" stroke="#000000" />
+      <circle cx="56" cy="956" r="20" fill="none" stroke="#000000" />
+      <text x="84" y="951" font-family="Arial" font-size="14" fill="#000000">Alex Developer</text>
+      <text x="84" y="968" font-family="Arial" font-size="12" fill="#000000">Owner</text>
+      <rect x="24" y="1000" width="208" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="36" y="1022" font-family="Arial" font-size="14" fill="#000000">Logout</text>
+    </g>
+  
+  
+    <rect x="272" y="16" width="1144" height="64" rx="12" fill="#FFFFFF" stroke="#000000" />
+    <g transform="translate(272, 16)">
+      <rect x="20" y="12" width="520" height="40" rx="8" fill="none" stroke="#000000" />
+      <text x="40" y="38" font-family="Arial" font-size="14" fill="#000000">Search projects or tasks...</text>
+      
+      <circle cx="1080" cy="32" r="20" fill="none" stroke="#000000" />
+      <circle cx="1120" cy="32" r="20" fill="none" stroke="#000000" />
+    </g>
+  
+  
+  <!-- Konten Utama -->
+  <g transform="translate(272, 112)">
+    <!-- Judul Halaman -->
+    <text x="0" y="30" font-family="Arial" font-size="32" font-weight="bold" fill="#000000">All Projects</text>
+    
+    <!-- Filter &amp; Create -->
+    <rect x="700" y="0" width="200" height="40" rx="8" fill="none" stroke="#000000" />
+    <text x="720" y="26" font-family="Arial" font-size="12" fill="#000000">Filter...</text>
+    <rect x="920" y="0" width="224" height="40" rx="8" fill="none" stroke="#000000" />
+    <text x="1032" y="26" font-family="Arial" font-size="14" font-weight="bold" fill="#000000" text-anchor="middle">Create Project</text>
+    
+    <!-- Grid Projects -->
+    <g transform="translate(0, 80)">
+      
+    <rect x="0" y="0" width="556" height="180" rx="16" fill="#FFFFFF" stroke="#000000" />
+    <rect x="20" y="20" width="56" height="56" rx="12" fill="#FFFFFF" stroke="#000000" />
+    <text x="92" y="45" font-family="Arial" font-size="16" font-weight="bold" fill="#000000">Neural Network</text>
+    <text x="92" y="68" font-family="Arial" font-size="12" fill="#000000">AI-powered task management system</text>
+    <rect x="20" y="100" width="516" height="8" rx="4" fill="none" stroke="#000000" />
+    <rect x="20" y="100" width="412.8" height="8" rx="4" fill="#000000" />
+    <text x="20" y="130" font-family="Arial" font-size="12" fill="#000000">80% complete • 4 members</text>
+    <circle cx="500" cy="150" r="12" fill="none" stroke="#000000" /><circle cx="472" cy="150" r="12" fill="none" stroke="#000000" /><circle cx="444" cy="150" r="12" fill="none" stroke="#000000" /><circle cx="416" cy="150" r="12" fill="none" stroke="#000000" />
+  
+      
+    <rect x="588" y="0" width="556" height="180" rx="16" fill="#FFFFFF" stroke="#000000" />
+    <rect x="608" y="20" width="56" height="56" rx="12" fill="#FFFFFF" stroke="#000000" />
+    <text x="680" y="45" font-family="Arial" font-size="16" font-weight="bold" fill="#000000">E-Commerce Platform</text>
+    <text x="680" y="68" font-family="Arial" font-size="12" fill="#000000">Modern shopping experience</text>
+    <rect x="608" y="100" width="516" height="8" rx="4" fill="none" stroke="#000000" />
+    <rect x="608" y="100" width="258" height="8" rx="4" fill="#000000" />
+    <text x="608" y="130" font-family="Arial" font-size="12" fill="#000000">50% complete • 3 members</text>
+    <circle cx="1088" cy="150" r="12" fill="none" stroke="#000000" /><circle cx="1060" cy="150" r="12" fill="none" stroke="#000000" /><circle cx="1032" cy="150" r="12" fill="none" stroke="#000000" />
+  
+      
+    <rect x="0" y="212" width="556" height="180" rx="16" fill="#FFFFFF" stroke="#000000" />
+    <rect x="20" y="232" width="56" height="56" rx="12" fill="#FFFFFF" stroke="#000000" />
+    <text x="92" y="257" font-family="Arial" font-size="16" font-weight="bold" fill="#000000">Mobile App Redesign</text>
+    <text x="92" y="280" font-family="Arial" font-size="12" fill="#000000">UI/UX overhaul for iOS &amp; Android</text>
+    <rect x="20" y="312" width="516" height="8" rx="4" fill="none" stroke="#000000" />
+    <rect x="20" y="312" width="490.2" height="8" rx="4" fill="#000000" />
+    <text x="20" y="342" font-family="Arial" font-size="12" fill="#000000">95% complete • 5 members</text>
+    <circle cx="500" cy="362" r="12" fill="none" stroke="#000000" /><circle cx="472" cy="362" r="12" fill="none" stroke="#000000" /><circle cx="444" cy="362" r="12" fill="none" stroke="#000000" /><circle cx="416" cy="362" r="12" fill="none" stroke="#000000" /><circle cx="388" cy="362" r="12" fill="none" stroke="#000000" />
+  
+      
+    <rect x="588" y="212" width="556" height="180" rx="16" fill="#FFFFFF" stroke="#000000" />
+    <rect x="608" y="232" width="56" height="56" rx="12" fill="#FFFFFF" stroke="#000000" />
+    <text x="680" y="257" font-family="Arial" font-size="16" font-weight="bold" fill="#000000">API Gateway</text>
+    <text x="680" y="280" font-family="Arial" font-size="12" fill="#000000">Microservices integration layer</text>
+    <rect x="608" y="312" width="516" height="8" rx="4" fill="none" stroke="#000000" />
+    <rect x="608" y="312" width="154.79999999999998" height="8" rx="4" fill="#000000" />
+    <text x="608" y="342" font-family="Arial" font-size="12" fill="#000000">30% complete • 2 members</text>
+    <circle cx="1088" cy="362" r="12" fill="none" stroke="#000000" /><circle cx="1060" cy="362" r="12" fill="none" stroke="#000000" />
+  
+    </g>
+  </g>
+</svg>
