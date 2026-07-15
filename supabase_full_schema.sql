@@ -25,7 +25,7 @@ drop type if exists task_priority cascade;
 drop type if exists member_role cascade;
 
 -- 1. ENUMS
-create type user_role as enum ('OWNER', 'MEMBER');
+create type user_role as enum ('OWNER', 'ADMIN', 'MEMBER');
 create type project_status as enum ('ACTIVE', 'ARCHIVED');
 create type task_status as enum ('BACKLOG', 'TODO', 'IN_PROGRESS', 'REVIEW', 'DONE');
 create type task_priority as enum ('LOW', 'MEDIUM', 'HIGH');
@@ -110,7 +110,7 @@ begin
   return exists (
     select 1 from public.profiles 
     where id = auth.uid() 
-    and role = 'OWNER'
+    and (role = 'OWNER' or role = 'ADMIN')
   );
 end;
 $$ language plpgsql security definer;
@@ -213,6 +213,8 @@ begin
   
   if input_role = 'OWNER' then
     assigned_role := 'OWNER'::public.user_role;
+  elsif input_role = 'ADMIN' then
+    assigned_role := 'ADMIN'::public.user_role;
   else
     assigned_role := 'MEMBER'::public.user_role;
   end if;

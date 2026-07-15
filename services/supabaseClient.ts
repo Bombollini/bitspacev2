@@ -19,7 +19,7 @@ const fetchWithTimeout: typeof fetch = async (input: RequestInfo | URL, init?: R
   try {
     const combinedSignal =
       init?.signal && "any" in AbortSignal
-        ? // @ts-expect-error AbortSignal.any may be missing in older TS libs
+        ? // @ts-ignore AbortSignal.any may be missing in older TS libs
           AbortSignal.any([init.signal, controller.signal])
         : (init?.signal ?? controller.signal);
 
@@ -50,9 +50,8 @@ export const supabase: SupabaseClientType =
       // Keep users logged in across refreshes and prevent access tokens expiring mid-session.
       persistSession: true,
       autoRefreshToken: true,
-      // App uses HashRouter (#/...), so URL fragments are not auth callbacks.
-      // Keeping this false avoids Supabase trying to parse the hash and hanging on init.
-      detectSessionInUrl: false,
+      // Enable session detection from URL for password reset functionality
+      detectSessionInUrl: true,
     },
   });
 

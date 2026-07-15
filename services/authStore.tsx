@@ -119,13 +119,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
+    // First, let's check if we need to handle a password recovery token in the URL
+    const handleRecovery = async () => {
+      console.log("Checking for password recovery in URL...");
+      const hashParams = new URLSearchParams(window.location.hash.slice(1));
+      const type = hashParams.get("type");
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+
+      console.log("URL hash params:", { type, hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken });
+
+      // If we have recovery type and tokens, let's set the session manually
+      if (type === "recovery" && accessToken && refreshToken) {
+        console.log("Password recovery detected in URL, setting session...");
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (error) {
+          console.error("Failed to set recovery session:", error);
+        } else {
+          console.log("Recovery session set successfully:", data);
+          // Now let's clear the hash to clean up the URL
+          window.history.replaceState(null, "", window.location.pathname + window.location.search);
+        }
+      }
+    };
+
+    handleRecovery();
     checkAuth();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('onAuthStateChange event:', event);
-      if (event === 'PASSWORD_RECOVERY') {
+      console.log("onAuthStateChange event:", event, "session:", !!session);
+      if (event === "PASSWORD_RECOVERY") {
+        console.log("Password recovery event detected!");
         setState((prev) => ({ ...prev, isRecoveringPassword: true }));
       }
 
@@ -148,7 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role: (profile?.role as UserRole) || UserRole.MEMBER,
           createdAt: profile?.created_at || new Date().toISOString(),
         };
-        setState({ user, accessToken: session.access_token, isLoading: false });
+        setState({ user, accessToken: session.access_token, isLoading: false, isRecoveringPassword: event === "PASSWORD_RECOVERY" });
 
         // If profile couldn't be fetched (timeout/network), retry once in the background.
         if (!profile) {
@@ -262,10 +292,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resetPassword = async (email: string) => {
     setState((prev) => ({ ...prev, isLoading: true }));
     try {
+      console.log("Sending password reset email to:", email);
+      // Use the origin for redirect, our code will handle navigating to reset-password page
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/#/login', // HashRouter redirect
+        redirectTo: window.location.origin,
       });
       if (error) throw error;
+      console.log("Password reset email sent successfully");
+    } catch (err) {
+      console.error("Error sending password reset email:", err);
+      throw err;
     } finally {
       setState((prev) => ({ ...prev, isLoading: false }));
     }

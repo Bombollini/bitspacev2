@@ -5,6 +5,7 @@ import { X, Calendar, User as UserIcon, Trash2, Edit2, Check, AlertCircle, Spark
 import { supabase } from '../services/supabaseClient';
 import { AIService } from '../services/ai.service';
 import { api } from '../services/apiClient';
+import { TimeTracker } from './TimeTracker';
 
 interface TaskDetailModalProps {
   isOpen: boolean;
@@ -444,6 +445,13 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                                     {isSubmittingComment ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                                 </button>
                             </form>
+                        </div>
+                    )}
+
+                    {/* Time Tracking Section */}
+                    {!isEditing && (
+                        <div className="pt-4 border-t border-white/5 mt-4">
+                            <TimeTracker taskId={task.id} taskTitle={task.title} />
                         </div>
                     )}
                 </div>

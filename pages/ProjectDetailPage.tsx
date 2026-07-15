@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../services/apiClient";
 import { supabase } from "../services/supabaseClient";
-import { Project, Task, TaskStatus, User, UserRole, Activity, CreateProjectDto } from "../types";
+import { Project, Task, TaskStatus, User, UserRole, Activity, CreateProjectDto, Milestone } from "../types";
 import { Layout } from "../components/Layout";
 import { TaskCard } from "../components/TaskCard";
 import { Badge } from "../components/Badge";
@@ -10,13 +10,42 @@ import { TaskModal } from "../components/TaskModal";
 import { MilestoneList } from "../components/MilestoneList";
 import { NewProjectModal } from "../components/NewProjectModal";
 import { useAuth } from "../services/authStore";
-import { Plus, Users, Activity as ActivityIcon, LayoutGrid, Info, Search, Filter, UserPlus, FileText, ChevronDown, Download, Trash2, Edit2, Sparkles, Loader2, X, MessageSquare, Briefcase, List, SortDesc, Calendar, RefreshCw } from "lucide-react";
+import {
+  Plus,
+  Users,
+  Activity as ActivityIcon,
+  LayoutGrid,
+  Info,
+  Search,
+  Filter,
+  UserPlus,
+  FileText,
+  ChevronDown,
+  Download,
+  Trash2,
+  Edit2,
+  Sparkles,
+  Loader2,
+  X,
+  MessageSquare,
+  Briefcase,
+  List,
+  SortDesc,
+  Calendar,
+  RefreshCw,
+  BarChart3,
+  TrendingUp,
+} from "lucide-react";
 import { generateProjectSummaryPDF, generateTaskListPDF, generateMemberWorkloadPDF, generateActivityLogPDF, generateMilestoneReportPDF, generateAIReportPDF } from "../utils/pdfGenerator";
 import { InviteMemberModal } from "../components/InviteMemberModal";
 import { TaskDetailModal } from "../components/TaskDetailModal";
 import { AIProjectInsightsPanel } from "../components/AIProjectInsightsPanel";
 import { AIAssistantSidebar } from "../components/AIAssistantSidebar";
 import { AIService } from "../services/ai.service";
+import { GanttChart } from "../components/GanttChart";
+import { AnalyticsCharts } from "../components/AnalyticsCharts";
+import { WorkloadManager } from "../components/WorkloadManager";
+import { TimeTracker } from "../components/TimeTracker";
 
 export const ProjectDetailPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -26,7 +55,8 @@ export const ProjectDetailPage: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<User[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [activeTab, setActiveTab] = useState<"tasks" | "overview" | "members" | "activity" | "milestones" | "ai_report" | "insights">("tasks");
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [activeTab, setActiveTab] = useState<"tasks" | "overview" | "members" | "activity" | "milestones" | "ai_report" | "insights" | "gantt" | "analytics" | "workload">("tasks");
 
   // Modals
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -49,8 +79,8 @@ export const ProjectDetailPage: React.FC = () => {
     try {
       const reportContent = await AIService.generateSprintReport(
         { name: project.name, description: project.description, status: project.status },
-        tasks.map(t => ({ title: t.title, status: t.status, dueDate: t.dueDate })),
-        activities.map(a => ({ action: a.action, createdAt: a.createdAt, user: { name: a.user?.name || '' } }))
+        tasks.map((t) => ({ title: t.title, status: t.status, dueDate: t.dueDate })),
+        activities.map((a) => ({ action: a.action, createdAt: a.createdAt, user: { name: a.user?.name || "" } })),
       );
       setAiReport(reportContent);
       setActiveTab("ai_report"); // Auto-switch to ai_report to show the report
@@ -66,16 +96,16 @@ export const ProjectDetailPage: React.FC = () => {
 
   const handleGeneratePlan = async () => {
     if (!project) return;
-    if (!confirm('This will use AI to automatically create milestones and tasks based on this project. Continue?')) return;
+    if (!confirm("This will use AI to automatically create milestones and tasks based on this project. Continue?")) return;
     setIsGeneratingPlan(true);
     try {
-      const { data, error } = await supabase.functions.invoke('gemini-ai', {
-        body: { 
-          action: 'generate_project_plan', 
+      const { data, error } = await supabase.functions.invoke("gemini-ai", {
+        body: {
+          action: "generate_project_plan",
           projectId: project.id,
           projectName: project.name,
-          description: project.description 
-        }
+          description: project.description,
+        },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -106,10 +136,16 @@ export const ProjectDetailPage: React.FC = () => {
 
     // 2. Fetch other data in parallel
     try {
-      const [tasksData, membersData, activityData] = await Promise.all([api.tasks.list(projectId), api.projects.members(projectId), api.activity.list(projectId)]);
+      const [tasksData, membersData, activityData, milestonesData] = await Promise.all([
+        api.tasks.list(projectId, { parentTaskId: null }), // Only top-level tasks for the board
+        api.projects.members(projectId),
+        api.activity.list(projectId),
+        api.milestones.list(projectId),
+      ]);
       setTasks(tasksData);
       setMembers(membersData);
       setActivities(activityData);
+      setMilestones(milestonesData);
     } catch (error) {
       console.error("Failed to fetch secondary data", error);
     } finally {
@@ -152,6 +188,16 @@ export const ProjectDetailPage: React.FC = () => {
     };
   }, [projectId]);
 
+  const handleAssignTask = async (taskId: string, userId: string) => {
+    try {
+      const updatedTask = await api.tasks.update(taskId, { assigneeId: userId });
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? updatedTask : t)));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to assign task");
+    }
+  };
+
   const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
     try {
       // Optimistic update for Task only
@@ -170,7 +216,9 @@ export const ProjectDetailPage: React.FC = () => {
     try {
       const updated = await api.tasks.update(taskId, data);
       setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
-      setSelectedTask(updated); // Update modal view
+      if (selectedTask && selectedTask.id === taskId) {
+        setSelectedTask(updated); // Update modal view
+      }
     } catch (e) {
       throw e;
     }
@@ -189,7 +237,10 @@ export const ProjectDetailPage: React.FC = () => {
   const handleCreateTask = async (data: any) => {
     try {
       const newTask = await api.tasks.create(data);
-      setTasks((prev) => [...prev, newTask]);
+      // Only add to the board if it's a top-level task (not a subtask)
+      if (!newTask.parentTaskId) {
+        setTasks((prev) => [...prev, newTask]);
+      }
     } catch (err) {
       alert("Failed to create task");
     }
@@ -449,15 +500,21 @@ export const ProjectDetailPage: React.FC = () => {
         </div>
 
         <div className="flex bg-black/20 p-1 rounded-xl border border-white/10 w-fit backdrop-blur-sm mx-auto lg:mx-0 overflow-x-auto">
-          {["milestones", "tasks", "overview", "members", "activity", "ai_report", "insights"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab as any)}
-              className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${activeTab === tab ? "bg-neon-blue/10 text-neon-blue shadow-[0_0_10px_rgba(0,243,255,0.2)]" : "text-slate-500 hover:text-white hover:bg-white/5"}`}
-            >
-              {tab === "ai_report" ? "AI Report" : tab === "insights" ? "AI Health" : tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
+          {(() => {
+            const baseTabs = ["milestones", "tasks", "overview", "members", "activity", "ai_report", "insights"];
+            const adminOnlyTabs = ["gantt", "analytics", "workload"];
+            const isAdminOrOwner = currentUser?.role === UserRole.OWNER || currentUser?.role === UserRole.ADMIN;
+            const allTabs = isAdminOrOwner ? [...baseTabs, ...adminOnlyTabs] : baseTabs;
+            return allTabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab as any)}
+                className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${activeTab === tab ? "bg-neon-blue/10 text-neon-blue shadow-[0_0_10px_rgba(0,243,255,0.2)]" : "text-slate-500 hover:text-white hover:bg-white/5"}`}
+              >
+                {tab === "ai_report" ? "AI Report" : tab === "insights" ? "AI Health" : tab === "gantt" ? "Gantt Chart" : tab === "analytics" ? "Analytics" : tab === "workload" ? "Workload" : tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ));
+          })()}
         </div>
       </div>
 
@@ -669,52 +726,46 @@ export const ProjectDetailPage: React.FC = () => {
         <div className="max-w-4xl mx-auto animate-fade-in">
           <div className="glass-panel p-8 rounded-2xl border-neon-purple/30 shadow-[0_0_30px_rgba(188,19,254,0.15)] bg-gradient-to-br from-neon-purple/5 to-transparent relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-blue to-neon-purple"></div>
-            
+
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 border-b border-white/10 pb-6">
-                <div>
-                    <h3 className="text-2xl font-bold text-white font-display flex items-center gap-2 drop-shadow-[0_0_5px_rgba(188,19,254,0.5)] mb-2">
-                        <Sparkles className="text-neon-purple:text-neon-blue" size={24} />
-                        AI Status Report
-                    </h3>
-                    <p className="text-slate-400 text-sm">Generated by Gemini 2.5 Flash from latest activity.</p>
+              <div>
+                <h3 className="text-2xl font-bold text-white font-display flex items-center gap-2 drop-shadow-[0_0_5px_rgba(188,19,254,0.5)] mb-2">
+                  <Sparkles className="text-neon-purple:text-neon-blue" size={24} />
+                  AI Status Report
+                </h3>
+                <p className="text-slate-400 text-sm">Generated by Gemini 2.5 Flash from latest activity.</p>
+              </div>
+
+              {aiReport && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleGenerateStatusReport}
+                    disabled={isGeneratingReport}
+                    className="flex items-center gap-2 px-6 py-3 bg-neon-blue/20 text-neon-blue hover:bg-neon-blue/30 border border-neon-blue/50 transition-all font-bold text-sm rounded-xl disabled:opacity-50"
+                  >
+                    {isGeneratingReport ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+                    Regenerate
+                  </button>
+                  <button
+                    onClick={() => generateAIReportPDF(project, aiReport)}
+                    className="flex items-center gap-2 px-6 py-3 bg-neon-purple/20 text-neon-purple hover:bg-neon-purple/30 border border-neon-purple/50 transition-all font-bold text-sm rounded-xl"
+                  >
+                    <Download size={18} /> Download PDF
+                  </button>
                 </div>
-                
-                {aiReport && (
-                    <div className="flex gap-2">
-                        <button 
-                            onClick={handleGenerateStatusReport}
-                            disabled={isGeneratingReport}
-                            className="flex items-center gap-2 px-6 py-3 bg-neon-blue/20 text-neon-blue hover:bg-neon-blue/30 border border-neon-blue/50 transition-all font-bold text-sm rounded-xl disabled:opacity-50"
-                        >
-                            {isGeneratingReport ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />} 
-                            Regenerate
-                        </button>
-                        <button 
-                            onClick={() => generateAIReportPDF(project, aiReport)}
-                            className="flex items-center gap-2 px-6 py-3 bg-neon-purple/20 text-neon-purple hover:bg-neon-purple/30 border border-neon-purple/50 transition-all font-bold text-sm rounded-xl"
-                        >
-                            <Download size={18} /> Download PDF
-                        </button>
-                    </div>
-                )}
+              )}
             </div>
-            
+
             {!aiReport ? (
-                <div className="text-center py-16 text-slate-500">
-                    <Sparkles className="mx-auto text-slate-600 mb-4" size={48} opacity={0.5} />
-                    <p className="mb-4">No AI Report has been generated yet.</p>
-                    <button
-                        onClick={handleGenerateStatusReport}
-                        disabled={isGeneratingReport}
-                        className="bg-neon-blue text-[#0f1020] px-6 py-2.5 rounded-lg font-bold hover:bg-white transition-colors"
-                    >
-                       {isGeneratingReport ? "Generating..." : "Generate Now"}
-                    </button>
-                </div>
+              <div className="text-center py-16 text-slate-500">
+                <Sparkles className="mx-auto text-slate-600 mb-4" size={48} opacity={0.5} />
+                <p className="mb-4">No AI Report has been generated yet.</p>
+                <button onClick={handleGenerateStatusReport} disabled={isGeneratingReport} className="bg-neon-blue text-[#0f1020] px-6 py-2.5 rounded-lg font-bold hover:bg-white transition-colors">
+                  {isGeneratingReport ? "Generating..." : "Generate Now"}
+                </button>
+              </div>
             ) : (
-                <div className="text-slate-300 leading-relaxed font-sans text-[15px] whitespace-pre-wrap">
-                    {aiReport}
-                </div>
+              <div className="text-slate-300 leading-relaxed font-sans text-[15px] whitespace-pre-wrap">{aiReport}</div>
             )}
           </div>
         </div>
@@ -723,6 +774,24 @@ export const ProjectDetailPage: React.FC = () => {
       {activeTab === "insights" && (
         <div className="max-w-5xl mx-auto animate-fade-in">
           <AIProjectInsightsPanel project={project!} tasks={tasks} />
+        </div>
+      )}
+
+      {(currentUser?.role === UserRole.OWNER || currentUser?.role === UserRole.ADMIN) && activeTab === "gantt" && (
+        <div className="animate-fade-in">
+          <GanttChart tasks={tasks} milestones={milestones} members={members} />
+        </div>
+      )}
+
+      {(currentUser?.role === UserRole.OWNER || currentUser?.role === UserRole.ADMIN) && activeTab === "analytics" && (
+        <div className="animate-fade-in">
+          <AnalyticsCharts tasks={tasks} milestones={milestones} members={members} />
+        </div>
+      )}
+
+      {(currentUser?.role === UserRole.OWNER || currentUser?.role === UserRole.ADMIN) && activeTab === "workload" && (
+        <div className="animate-fade-in">
+          <WorkloadManager tasks={tasks} members={members} onAssignTask={handleAssignTask} />
         </div>
       )}
 
@@ -735,15 +804,7 @@ export const ProjectDetailPage: React.FC = () => {
 
       <InviteMemberModal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} projectId={projectId!} currentMembers={members} onInvite={handleInviteSuccess} />
 
-      {project && (
-        <AIAssistantSidebar 
-          isOpen={isAIAssistantOpen} 
-          onClose={() => setIsAIAssistantOpen(false)} 
-          project={project} 
-          tasks={tasks} 
-          members={members} 
-        />
-      )}
+      {project && <AIAssistantSidebar isOpen={isAIAssistantOpen} onClose={() => setIsAIAssistantOpen(false)} project={project} tasks={tasks} members={members} />}
     </Layout>
   );
 };

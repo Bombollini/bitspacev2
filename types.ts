@@ -1,6 +1,7 @@
 
 export enum UserRole {
   OWNER = 'OWNER',
+  ADMIN = 'ADMIN',
   MEMBER = 'MEMBER',
 }
 
@@ -268,4 +269,105 @@ export interface ProjectInsight {
   delayPrediction?: string; // Mapped from delay_prediction
   bottlenecks: string[];
   createdAt: string; // Mapped from created_at
+}
+
+// Time Tracking Types
+export interface TimeEntry {
+  id: string;
+  taskId: string; // Mapped from task_id
+  userId: string; // Mapped from user_id
+  startTime: string; // Mapped from start_time
+  endTime?: string; // Mapped from end_time
+  duration?: number; // In minutes, calculated
+  description?: string;
+  createdAt: string; // Mapped from created_at
+  updatedAt: string; // Mapped from updated_at
+  user?: User;
+}
+
+export interface CreateTimeEntryDto {
+  taskId: string;
+  startTime: string;
+  endTime?: string;
+  description?: string;
+}
+
+export interface UpdateTimeEntryDto {
+  startTime?: string;
+  endTime?: string;
+  description?: string;
+}
+
+// Workload Types
+export interface MemberWorkload {
+  userId: string;
+  user: User;
+  totalTasks: number;
+  completedTasks: number;
+  inProgressTasks: number;
+  overdueTasks: number;
+  totalHours: number; // Estimated total hours
+  workloadPercentage: number; // 0-100%
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+}
+
+export interface WorkloadAlert {
+  id: string;
+  userId: string;
+  projectId: string;
+  type: 'OVERLOAD' | 'DEADLINE_APPROACHING' | 'BOTTLENECK';
+  message: string;
+  severity: 'INFO' | 'WARNING' | 'CRITICAL';
+  createdAt: string;
+  isRead: boolean;
+}
+
+// Analytics Types
+export interface TaskCompletionStats {
+  date: string;
+  completed: number;
+  total: number;
+}
+
+export interface MemberPerformance {
+  userId: string;
+  user: User;
+  tasksCompleted: number;
+  averageCompletionTime: number; // In hours
+  onTimeDelivery: number; // Percentage
+  productivityScore: number; // 0-100
+}
+
+export interface ProjectAnalytics {
+  taskCompletionRate: number; // Percentage
+  averageTaskDuration: number; // In hours
+  milestoneCompletion: number; // Percentage
+  teamProductivity: number; // 0-100
+  weeklyTrends: TaskCompletionStats[];
+  memberPerformance: MemberPerformance[];
+}
+
+// Gantt Chart Types
+export interface GanttTask {
+  id: string;
+  taskId: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  progress: number; // 0-100
+  assignee?: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+  parentId?: string;
+  milestoneId?: string;
+  color: string;
+}
+
+export interface GanttMilestone {
+  id: string;
+  milestoneId: string;
+  title: string;
+  date: string;
+  status: 'OPEN' | 'CLOSED';
+  progress: number;
 }

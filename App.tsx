@@ -1,18 +1,19 @@
-
-import React from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './services/authStore';
-import { LoginPage } from './pages/LoginPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { ProjectDetailPage } from './pages/ProjectDetailPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { ProjectsPage } from './pages/ProjectsPage';
-import { MeetingsPage } from './pages/MeetingsPage';
-import { MeetingDetailPage } from './pages/MeetingDetailPage';
+import React, { useEffect } from "react";
+import { HashRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth } from "./services/authStore";
+import { LoginPage } from "./pages/LoginPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { ProjectDetailPage } from "./pages/ProjectDetailPage";
+import { ProfilePage } from "./pages/ProfilePage";
+import { ProjectsPage } from "./pages/ProjectsPage";
+import { MeetingsPage } from "./pages/MeetingsPage";
+import { MeetingDetailPage } from "./pages/MeetingDetailPage";
+import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
-  
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -31,65 +32,92 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
+const AuthNavigationHandler: React.FC = () => {
+  const { isRecoveringPassword, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Wait for loading to complete before navigating
+    if (!isLoading && isRecoveringPassword && location.pathname !== "/reset-password") {
+      console.log("Password recovery detected, navigating to reset password page");
+      navigate("/reset-password", { replace: true });
+    }
+  }, [isRecoveringPassword, isLoading, navigate, location.pathname]);
+
+  return null;
+};
+
 const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
+        <AuthNavigationHandler />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          
-          <Route 
-            path="/dashboard" 
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+          <Route
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <DashboardPage />
               </ProtectedRoute>
-            } 
+            }
           />
 
-          <Route 
-            path="/projects" 
+          <Route
+            path="/projects"
             element={
               <ProtectedRoute>
                 <ProjectsPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          
-          <Route 
-            path="/projects/:projectId" 
+
+          <Route
+            path="/projects/:projectId"
             element={
               <ProtectedRoute>
                 <ProjectDetailPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          
-          <Route 
-            path="/profile" 
+
+          <Route
+            path="/profile"
             element={
               <ProtectedRoute>
                 <ProfilePage />
               </ProtectedRoute>
-            } 
+            }
           />
 
-          <Route 
-            path="/meetings" 
+          <Route
+            path="/meetings"
             element={
               <ProtectedRoute>
                 <MeetingsPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          
-          <Route 
-            path="/meetings/:meetingId" 
+
+          <Route
+            path="/meetings/:meetingId"
             element={
               <ProtectedRoute>
                 <MeetingDetailPage />
               </ProtectedRoute>
-            } 
+            }
+          />
+
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminDashboardPage />
+              </ProtectedRoute>
+            }
           />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

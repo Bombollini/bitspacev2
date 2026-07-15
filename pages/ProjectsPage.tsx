@@ -40,7 +40,7 @@ export const ProjectsPage: React.FC = () => {
 
   const handleSeedData = async () => {
     if (!import.meta.env.DEV) return;
-    if (!currentUser || currentUser.role !== UserRole.OWNER) return;
+    if (!currentUser || (currentUser.role !== UserRole.OWNER && currentUser.role !== UserRole.ADMIN)) return;
     setIsSeeding(true);
     try {
       const result = await seedDemoData({ projectsCount: 3, tasksPerProject: 6 });
@@ -55,8 +55,8 @@ export const ProjectsPage: React.FC = () => {
   };
 
   const handleCreateProject = async (data: CreateProjectDto) => {
-    if (!currentUser || currentUser.role !== UserRole.OWNER) {
-      alert("Only owners can create projects");
+    if (!currentUser || (currentUser.role !== UserRole.OWNER && currentUser.role !== UserRole.ADMIN)) {
+      alert("Only admins or owners can create projects");
       return;
     }
     try {
@@ -69,7 +69,7 @@ export const ProjectsPage: React.FC = () => {
   };
 
   const handleGenerateReport = async () => {
-    if (!currentUser || currentUser.role !== UserRole.OWNER) return;
+    if (!currentUser || (currentUser.role !== UserRole.OWNER && currentUser.role !== UserRole.ADMIN)) return;
     setIsGeneratingReport(true);
     try {
       const ownedProjects = projects.filter((p) => p.ownerId === currentUser.id);
@@ -101,7 +101,7 @@ export const ProjectsPage: React.FC = () => {
             <span className="w-1 h-6 bg-neon-purple rounded-full shadow-[0_0_10px_#bc13fe]"></span>
             Projects List
           </h3>
-          {currentUser?.role === UserRole.OWNER && (
+          {(currentUser?.role === UserRole.OWNER || currentUser?.role === UserRole.ADMIN) && (
             <div className="flex items-center gap-3">
               {import.meta.env.DEV && (
                 <button

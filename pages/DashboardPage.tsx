@@ -3,6 +3,7 @@ import { api } from "../services/apiClient";
 import { Project } from "../types";
 import { Layout } from "../components/Layout";
 import { Briefcase, CheckCircle2, AlertCircle, Clock, LayoutDashboard } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 export const DashboardPage: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -34,6 +35,25 @@ export const DashboardPage: React.FC = () => {
     { name: "Overdue", value: projects.reduce((acc, p) => acc + (p.stats?.overdueTasks || 0), 0), icon: AlertCircle, color: "text-neon-pink", bg: "bg-neon-pink/10 border-neon-pink/30" },
   ];
 
+  // Data for Project Progress Bar Chart
+  const projectProgressData = projects.slice(0, 5).map((project) => {
+    const total = project.stats?.totalTasks || 1;
+    const completed = project.stats?.completedTasks || 0;
+    return {
+      name: project.name.length > 15 ? project.name.slice(0, 15) + "..." : project.name,
+      completed: completed,
+      total: total,
+      progress: Math.round((completed / total) * 100),
+    };
+  });
+
+  // Data for Task Status Pie Chart
+  const taskStatusData = [
+    { name: "Completed", value: projects.reduce((acc, p) => acc + (p.stats?.completedTasks || 0), 0), color: "#10b981" },
+    { name: "In Progress", value: projects.reduce((acc, p) => acc + Math.max(0, (p.stats?.totalTasks || 0) - (p.stats?.completedTasks || 0) - (p.stats?.overdueTasks || 0)), 0), color: "#06b6d4" },
+    { name: "Overdue", value: projects.reduce((acc, p) => acc + (p.stats?.overdueTasks || 0), 0), color: "#f43f5e" },
+  ].filter((item) => item.value > 0);
+
   return (
     <Layout>
       <div className="space-y-8 animate-fade-in">
@@ -55,18 +75,64 @@ export const DashboardPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{stat.name}</p>
-                <p className="text-2xl font-bold text-white font-display tracking-wide">{isLoading ? '-' : stat.value}</p>
+                <p className="text-2xl font-bold text-white font-display tracking-wide">{isLoading ? "-" : stat.value}</p>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="glass-panel p-8 rounded-2xl flex flex-col items-center justify-center text-center mt-12 bg-white/5 border-dashed border-2 border-white/10 min-h-[300px]">
-          <div className="w-20 h-20 bg-neon-blue/10 rounded-full flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(0,243,255,0.2)]">
-             <LayoutDashboard className="text-neon-blue" size={40} />
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Project Progress Bar Chart */}
+          <div className="glass-panel p-6 rounded-2xl">
+            <h3 className="text-xl font-bold text-white mb-6 font-display tracking-tight">Project Progress</h3>
+            <div className="h-[300px]">
+              {isLoading ? (
+                <div className="flex items-center justify-center h-full text-slate-400">Loading...</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={projectProgressData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                    <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: "8px" }} labelStyle={{ color: "#f1f5f9" }} />
+                    <Bar dataKey="progress" fill="#06b6d4" radius={[4, 4, 0, 0]} name="Progress (%)" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
-          <h3 className="text-2xl font-bold text-white mb-2 font-display tracking-tight">System Status Optimal</h3>
-          <p className="text-slate-400 max-w-md">All remote nodes and AI subsystems are fully functional and synchronized with the latest directives.</p>
+
+          {/* Task Status Pie Chart */}
+          <div className="glass-panel p-6 rounded-2xl">
+            <h3 className="text-xl font-bold text-white mb-6 font-display tracking-tight">Task Status</h3>
+            <div className="h-[300px]">
+              {isLoading ? (
+                <div className="flex items-center justify-center h-full text-slate-400">Loading...</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={taskStatusData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
+                      {taskStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: "8px" }} labelStyle={{ color: "#f1f5f9" }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+            {!isLoading && (
+              <div className="flex justify-center gap-6 mt-4">
+                {taskStatusData.map((item, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="text-sm text-slate-400">{item.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </Layout>
