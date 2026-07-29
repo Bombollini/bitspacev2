@@ -20,16 +20,11 @@ const BG_COLOR = "#FFFFFF";
 function escapeXml(unsafe) {
   return unsafe.replace(/[&<>"']/g, function (c) {
     switch (c) {
-      case "&":
-        return "&amp;";
-      case "<":
-        return "&lt;";
-      case ">":
-        return "&gt;";
-      case '"':
-        return "&quot;";
-      case "'":
-        return "&apos;";
+      case "&": return "&amp;";
+      case "<": return "&lt;";
+      case ">": return "&gt;";
+      case '"': return "&quot;";
+      case "'": return "&apos;";
     }
   });
 }

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="595" height="842" viewBox="0 0 595 842" xmlns="http://www.w3.org/2000/svg" style="background: white;">
+    <!-- Header (without project name) -->
+    <rect x="28" y="28" width="43" height="43" fill="white" stroke="black" stroke-width="1"/>
+    <text x="49" y="55" font-family="Arial" font-size="16" fill="black" text-anchor="middle" font-weight="bold">B</text>
+    <text x="80" y="50" font-family="Arial" font-size="18" fill="black" font-weight="bold">Bitora Protocol</text>
+    <text x="567" y="42" font-family="Arial" font-size="9" fill="black" text-anchor="end">Tanggal Cetak:</text>
+    <text x="567" y="58" font-family="Arial" font-size="9" fill="black" text-anchor="end">16 Juli 2026</text>
+    <text x="297" y="95" font-family="Arial" font-size="16" fill="black" text-anchor="middle" font-weight="bold">ALL PROJECTS REPORT</text>
+    <text x="567" y="120" font-family="Arial" font-size="9" fill="black" text-anchor="end">Total Projects: 3</text>
+    <line x1="28" y1="130" x2="567" y2="130" stroke="black" stroke-width="1"/>
+    
+    <!-- Project sections -->
+    
+      <!-- Project 1 -->
+      <text x="30" y="155" font-family="Arial" font-size="14" fill="black" font-weight="bold">Pengembangan Aplikasi Bitspace</text>
+      <text x="30" y="180" font-family="Arial" font-size="10" fill="black">Status: On Progress</text>
+      <text x="30" y="200" font-family="Arial" font-size="10" fill="black">Deskripsi: Aplikasi manajemen proyek</text>
+      <text x="30" y="220" font-family="Arial" font-size="10" fill="#666">Anggota: 3 orang</text>
+      <line x1="28" y1="240" x2="567" y2="240" stroke="black" stroke-width="1"/>
+    
+      <!-- Project 2 -->
+      <text x="30" y="295" font-family="Arial" font-size="14" fill="black" font-weight="bold">Redesign Website Company Profile</text>
+      <text x="30" y="320" font-family="Arial" font-size="10" fill="black">Status: Done</text>
+      <text x="30" y="340" font-family="Arial" font-size="10" fill="black">Deskripsi: Redesign UI/UX website Bitora</text>
+      <text x="30" y="360" font-family="Arial" font-size="10" fill="#666">Anggota: 2 orang</text>
+      <line x1="28" y1="380" x2="567" y2="380" stroke="black" stroke-width="1"/>
+    
+      <!-- Project 3 -->
+      <text x="30" y="435" font-family="Arial" font-size="14" fill="black" font-weight="bold">Mobile App Bitspace</text>
+      <text x="30" y="460" font-family="Arial" font-size="10" fill="black">Status: Planning</text>
+      <text x="30" y="480" font-family="Arial" font-size="10" fill="black">Deskripsi: Aplikasi mobile untuk manajemen proyek</text>
+      <text x="30" y="500" font-family="Arial" font-size="10" fill="#666">Anggota: 4 orang</text>
+      <line x1="28" y1="520" x2="567" y2="520" stroke="black" stroke-width="1"/>
+    
+    
+    
+    <!-- Footer -->
+    <text x="567" y="820" font-family="Arial" font-size="8" fill="black" text-anchor="end">Dicetak oleh sistem dashboard Bitora Protocol</text>
+  
+</svg>
