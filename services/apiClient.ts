@@ -1,4 +1,4 @@
-import { supabase } from "./supabaseClient";
+import { createClient } from "./supabaseClient";
 import {
   User,
   Project,
@@ -18,6 +18,21 @@ import {
   UpdateMeetingDto,
   ProjectInsight,
 } from "../types";
+
+export class AccessDeniedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AccessDeniedError";
+    Object.setPrototypeOf(this, AccessDeniedError.prototype);
+  }
+}
+
+export const isAccessDenied = (err: any): boolean => {
+  if (!err) return false;
+  if (err instanceof AccessDeniedError) return true;
+  const m = String(err?.message || err || "").toLowerCase();
+  return m.includes("access denied") || m.includes("forbidden") || m.includes("not authenticated");
+};
 
 let cachedRole: { userId: string; role: UserRole; ts: number } | null = null;
 
@@ -338,7 +353,7 @@ export const api = {
       const { data: memberData } = await supabase.from("project_members").select("user_id").eq("project_id", id).eq("user_id", user.id);
 
       if (!isOwner && (!memberData || memberData.length === 0)) {
-        throw new Error("Access denied to this project");
+        throw new AccessDeniedError("Access denied to this project");
       }
 
       const totalTasks = data.tasks.length;
@@ -365,7 +380,7 @@ export const api = {
       const { data: memberCheck } = await supabase.from("project_members").select("user_id").eq("project_id", id).eq("user_id", user.id);
 
       if (!isOwner && (!memberCheck || memberCheck.length === 0)) {
-        throw new Error("Access denied to view project members");
+        throw new AccessDeniedError("Access denied to view project members");
       }
 
       // Get profiles linked via project_members + the owner
@@ -907,7 +922,7 @@ export const api = {
       const { data: memberCheck } = await supabase.from("project_members").select("user_id").eq("project_id", data.project_id).eq("user_id", user.id);
 
       if (!isOwner && (!memberCheck || memberCheck.length === 0)) {
-        throw new Error("Access denied to view this meeting");
+        throw new AccessDeniedError("Access denied to view this meeting");
       }
 
       return {
@@ -937,7 +952,7 @@ export const api = {
       const { data: memberCheck } = await supabase.from("project_members").select("user_id").eq("project_id", data.projectId).eq("user_id", userId);
 
       if (!isOwner && (!memberCheck || memberCheck.length === 0)) {
-        throw new Error("Access denied - you are not a member of this project");
+        throw new AccessDeniedError("Access denied - you are not a member of this project");
       }
 
       const { data: meeting, error } = await supabase

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "../services/apiClient";
+import { api, isAccessDenied } from "../services/apiClient";
 import { supabase } from "../services/supabaseClient";
 import { Project, Task, TaskStatus, User, UserRole, Activity, CreateProjectDto, Milestone } from "../types";
 import { Layout } from "../components/Layout";
@@ -94,35 +94,160 @@ export const ProjectDetailPage: React.FC = () => {
 
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
 
+  const isNetworkError = (message: string): boolean => {
+    const lower = String(message || "").toLowerCase();
+    return (
+      lower.includes("failed to send a request") ||
+      lower.includes("failed to fetch") ||
+      lower.includes("network") ||
+      lower.includes("cors") ||
+      lower.includes("load") ||
+      lower.includes("abort") ||
+      lower.includes("timeout") ||
+      lower.includes("edge function")
+    );
+  };
+
+  const isAuthOrJwtError = (message: string, invokeError: any): boolean => {
+    const lower = String(message || "").toLowerCase();
+    const ctxLower = String(invokeError?.context || "").toLowerCase();
+    return (
+      lower.includes("jwt") || lower.includes("invalid token") || lower.includes("unauthorized") || lower.includes("401") || ctxLower.includes("401") || (invokeError && typeof invokeError.status === "number" && invokeError.status === 401)
+    );
+  };
+
+  const insertPlanViaClient = async (projectIdArg: string, milestones: { title: string; description: string; tasks: { title: string; description: string }[] }[]): Promise<{ milestoneCount: number; taskCount: number }> => {
+    let baseDate = new Date();
+    let milestoneCount = 0;
+    let taskCount = 0;
+
+    for (const m of milestones) {
+      baseDate.setDate(baseDate.getDate() + 7);
+      const mCreated = await api.milestones.create({
+        projectId: projectIdArg,
+        title: m.title,
+        description: m.description || "",
+        dueDate: new Date(baseDate).toISOString(),
+      });
+      milestoneCount++;
+
+      for (const t of m.tasks || []) {
+        await api.tasks.create({
+          projectId: projectIdArg,
+          milestoneId: mCreated.id,
+          title: t.title,
+          description: t.description || "",
+          status: TaskStatus.BACKLOG,
+          priority: TaskPriority.MEDIUM,
+        });
+        taskCount++;
+      }
+    }
+
+    return { milestoneCount, taskCount };
+  };
+
   const handleGeneratePlan = async () => {
     if (!project) return;
     if (!confirm("This will use AI to automatically create milestones and tasks based on this project. Continue?")) return;
     setIsGeneratingPlan(true);
+    let usedFallback = false;
+    let fallbackCause = "";
+
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke("gemini-ai", {
-        body: {
-          action: "generate_project_plan",
-          projectId: project.id,
-          projectName: project.name,
-          description: project.description,
-        },
-      });
-      if (invokeError) throw invokeError;
-      if (data?.error) {
-        const errMsg = typeof data.error === "string" ? data.error : JSON.stringify(data.error);
-        throw new Error(errMsg);
+      let milestoneCount = 0;
+      let taskCount = 0;
+
+      try {
+        const { data, error: invokeError } = await supabase.functions.invoke("gemini-ai", {
+          body: {
+            action: "generate_project_plan",
+            projectId: project.id,
+            projectName: project.name,
+            description: project.description,
+          },
+        });
+        const invokeMsg = invokeError?.message || "";
+        if (invokeError) {
+          if (isNetworkError(invokeMsg) || isAuthOrJwtError(invokeMsg, invokeError)) {
+            throw Object.assign(invokeError, { __retryClientSide: true, __cause: invokeMsg });
+          }
+          throw invokeError;
+        }
+        if (data?.error) {
+          const errMsg = typeof data.error === "string" ? data.error : JSON.stringify(data.error);
+          throw new Error(errMsg);
+        }
+        const result = data?.result;
+        if (result && typeof result === "object") {
+          milestoneCount = result.milestoneCount || 0;
+          taskCount = result.taskCount || 0;
+        }
+      } catch (primaryErr: any) {
+        if (!primaryErr?.__retryClientSide) {
+          const msg = primaryErr?.message || String(primaryErr);
+          if (!isNetworkError(msg)) throw primaryErr;
+          fallbackCause = msg;
+        } else {
+          fallbackCause = primaryErr.__cause || "Edge Function unreachable";
+        }
+
+        console.warn("Edge Function failed, falling back to client-side AI call. Cause:", fallbackCause);
+        usedFallback = true;
+
+        const plan = await AIService.generateProjectPlan(project.name, project.description || "");
+        const safeMilestones = Array.isArray(plan) ? plan : plan.milestones;
+        if (!Array.isArray(safeMilestones) || safeMilestones.length === 0) {
+          throw new Error("AI returned an empty or invalid milestones list.");
+        }
+        const counts = await insertPlanViaClient(project.id, safeMilestones);
+        milestoneCount = counts.milestoneCount;
+        taskCount = counts.taskCount;
       }
+
       fetchData();
-      const result = data?.result;
-      if (result && typeof result === "object" && result.milestoneCount && result.taskCount) {
-        alert(`AI Plan generated successfully!\n\nCreated ${result.milestoneCount} milestones and ${result.taskCount} tasks.`);
-      } else {
-        alert("Project plan automatically generated by AI!");
+      const parts: string[] = [];
+      parts.push("AI Plan generated successfully!");
+      parts.push("");
+      parts.push(`Created ${milestoneCount} milestones and ${taskCount} tasks.`);
+      if (usedFallback) {
+        parts.push("");
+        parts.push("(Note: Edge Function unavailable; used direct Gemini API from browser as fallback.)");
       }
+      alert(parts.join("\n"));
     } catch (err: any) {
       console.error("Auto-plan error:", err);
-      const detail = err?.message || String(err) || "Unknown error";
-      alert(`Failed to generate AI plan.\n\nDetail: ${detail}`);
+      const rawDetail = err?.message || String(err) || "Unknown error";
+
+      let diagnosis = "";
+      const lower = rawDetail.toLowerCase();
+      if (isNetworkError(rawDetail)) {
+        diagnosis =
+          "The Supabase Edge Function (gemini-ai) could not be reached.\n" +
+          "Possible causes:\n" +
+          "  - The Edge Function has not been deployed yet.\n" +
+          "  - A CORS / JWT verification issue on the function.\n" +
+          "  - A network connectivity issue or ad blocker is blocking the request.\n\n" +
+          "Suggested fix:\n" +
+          "  1. Deploy the Edge Function:\n" +
+          "     supabase functions deploy gemini-ai --project-ref <your-project-ref>\n" +
+          "  2. Or verify_jwt is causing issues with session tokens.";
+      } else if (isAuthOrJwtError(rawDetail, err)) {
+        diagnosis = "Authentication failure when calling the Edge Function.\n" + "The function has verify_jwt=true but your session token may be invalid.\n\n" + "Suggested fix: Refresh the page and re-login, then try again.";
+      } else if (lower.includes("gemini") || lower.includes("api key") || lower.includes("vite_gemini_api_key")) {
+        diagnosis = "Gemini API key missing or invalid in this environment.\n" + "Set VITE_GEMINI_API_KEY in your .env / Netlify environment variables for client-side fallback to work.";
+      }
+
+      const alertParts: string[] = [];
+      alertParts.push("Failed to generate AI plan.");
+      alertParts.push("");
+      alertParts.push(`Detail: ${rawDetail}`);
+      if (diagnosis) {
+        alertParts.push("");
+        alertParts.push(`--- Troubleshooting ---`);
+        alertParts.push(diagnosis);
+      }
+      alert(alertParts.join("\n"));
     } finally {
       setIsGeneratingPlan(false);
     }
@@ -131,14 +256,16 @@ export const ProjectDetailPage: React.FC = () => {
   const fetchData = useCallback(async () => {
     if (!projectId) return;
 
-    // 1. Fetch Project Details first (Critical for UI skeleton)
     try {
       setIsLoading(true);
       const projData = await api.projects.get(projectId);
       setProject(projData);
     } catch (err) {
+      if (isAccessDenied(err)) {
+        navigate("/projects", { replace: true });
+        return;
+      }
       console.error("Failed to fetch project:", err);
-      // If project fails, we can't really do anything
       setIsLoading(false);
       return;
     }
