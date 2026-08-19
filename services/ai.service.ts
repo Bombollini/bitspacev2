@@ -533,6 +533,68 @@ Return ONLY the Markdown text.`;
     }
   }
 
+  /**
+   * Generate a project plan (milestones + tasks) for an existing project.
+   * Returns structured data that the caller inserts into the DB.
+   */
+  static async generateProjectPlan(
+    projectName: string,
+    description: string,
+  ): Promise<{ milestones: { title: string; description: string; tasks: { title: string; description: string }[] }[] }> {
+    if (!GEMINI_API_KEY) {
+      throw new Error("Gemini API key is not configured. Please set VITE_GEMINI_API_KEY in your environment.");
+    }
+
+    const prompt = `You are an expert project manager. Your goal is to create a specialized, highly accurate, and highly specific project plan.
+
+Project Name: "${projectName}"
+Project Description: "${description || "No description provided. Please deduce the context strictly from the project name."}"
+
+INSTRUCTIONS:
+1. Analyze the Project Name AND Project Description deeply to understand the exact context, industry, and goals of this specific project.
+2. Create a realistic plan containing typically 3-4 milestones, with 2-3 actionable tasks each.
+3. Every single milestone title and task title MUST be highly specific to the context provided above.
+
+Return ONLY a raw JSON array of milestones. Each milestone must have:
+- title: string
+- description: string
+- tasks: array of objects { title: string, description: string }
+
+Do not use markdown formatting blocks. Just return the raw JSON array: [ { ... } ].`;
+
+    const response = await fetch(`${GEMINI_API_BASE}/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 8192,
+          responseMimeType: "application/json",
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(`Gemini API error: ${response.status} - ${err.error?.message || "Unknown error"}`);
+    }
+
+    const data = await response.json();
+    let text = "";
+    if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      text = data.candidates[0].content.parts[0].text;
+    } else if (data.contents?.[0]?.parts?.[0]?.text) {
+      text = data.contents[0].parts[0].text;
+    }
+
+    const milestones = this.parseJsonResponse(text);
+    if (!Array.isArray(milestones)) {
+      throw new Error("AI returned an unexpected format — expected a JSON array of milestones.");
+    }
+    return { milestones };
+  }
+
   static async chatWithWorkspace(
     message: string,
     history: { role: "user" | "model"; parts: { text: string }[] }[],
